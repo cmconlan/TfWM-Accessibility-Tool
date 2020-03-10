@@ -1,0 +1,86 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0",
+    "description": "Accessibility Tool API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/poi/{id}": {
+      "get": {
+        "summary": "Point of Interest",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/POI"
+                },
+                "examples": {}
+              }
+            }
+          }
+        },
+        "operationId": "get-poi",
+        "description": "",
+        "parameters": []
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "number",
+            "default": 0,
+            "maximum": 0,
+            "minimum": 0,
+            "multipleOf": 0
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Numeric ID used to refer to the point of interest"
+        }
+      ]
+    }
+  },
+  "components": {
+    "securitySchemes": {},
+    "schemas": {
+      "POI": {
+        "title": "POI",
+        "type": "object",
+        "description": "Point of Interest",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Numeric ID used to refer to the point of interest"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of point of interest"
+          },
+          "latitude": {
+            "type": "number",
+            "description": "The latitude of the point of interest"
+          },
+          "longitude": {
+            "type": "number",
+            "description": "The longitude of the point of interest"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "latitude",
+          "longitude"
+        ]
+      }
+    }
+  }
+}
