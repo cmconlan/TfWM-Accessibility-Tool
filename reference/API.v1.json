@@ -280,15 +280,24 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example 1": {
                     "value": [
-                      "Vulcan",
-                      "Andorian",
-                      "Klingon"
+                      {
+                        "key": "vulcan",
+                        "value": "Vulcan"
+                      },
+                      {
+                        "key": "andorian",
+                        "value": "Andorian"
+                      },
+                      {
+                        "key": "klingon",
+                        "value": "Klingon"
+                      }
                     ]
                   }
                 }
@@ -312,16 +321,28 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "employed",
-                      "self-employed",
-                      "company-director",
-                      "unemployed"
+                      {
+                        "key": "employed",
+                        "value": "Employed"
+                      },
+                      {
+                        "key": "self-employed",
+                        "value": "Self Employed"
+                      },
+                      {
+                        "key": "company-director",
+                        "value": "Company Director"
+                      },
+                      {
+                        "key": "unemployed",
+                        "value": "Unemployed"
+                      }
                     ]
                   }
                 }
@@ -345,14 +366,20 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "non-disabled",
-                      "disabled"
+                      {
+                        "key": "non-disabled",
+                        "value": "Non Disabled"
+                      },
+                      {
+                        "key": "disabled",
+                        "value": "Disabled"
+                      }
                     ]
                   }
                 }
@@ -376,13 +403,16 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "Average journey cost"
+                      {
+                        "key": "average-journey-cost",
+                        "value": "Average journey cost"
+                      }
                     ]
                   }
                 }
@@ -406,14 +436,20 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "Birmingham",
-                      "Coventry"
+                      {
+                        "key": "birmingham",
+                        "value": "Birmingham"
+                      },
+                      {
+                        "key": "coventry",
+                        "value": "Coventry"
+                      }
                     ]
                   }
                 }
@@ -437,14 +473,20 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "Weekday AM Peak",
-                      "Weekday PM Peak"
+                      {
+                        "key": "wd-am-p",
+                        "value": "Weekday AM Peak"
+                      },
+                      {
+                        "key": "wd-pm-p",
+                        "value": "Weekday PM Peak"
+                      }
                     ]
                   }
                 }
@@ -468,15 +510,24 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/Key-Value-Pair"
                   }
                 },
                 "examples": {
                   "Example": {
                     "value": [
-                      "Church",
-                      "University",
-                      "Hospital"
+                      {
+                        "key": "church",
+                        "value": "Church"
+                      },
+                      {
+                        "key": "university",
+                        "value": "University"
+                      },
+                      {
+                        "key": "hospital",
+                        "value": "Hospital"
+                      }
                     ]
                   }
                 }
@@ -716,15 +767,15 @@
           "type": "integer"
         },
         "x-examples": {
-          "example-1": [
+          "Example 1": [
             -1.5616464614868162,
             52.37077828509749
           ],
-          "example-2": [
+          "Example 2": [
             -1.5622901916503906,
             52.373791403989124
           ],
-          "example-3": [
+          "Example 3": [
             -1.5561962127685547,
             52.37724968708041
           ]
@@ -755,6 +806,33 @@
           "output_area_id",
           "accessibility"
         ]
+      },
+      "Key-Value-Pair": {
+        "title": "Key-Value-Pair",
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "description": "A standard key-value pair model. Common usage is to display the value to the user, but be using the key behind the scenes.",
+        "x-examples": {
+          "Example 1": {
+            "key": "self-employed",
+            "value": "Self Employed"
+          },
+          "Example 2": {
+            "key": "non-disabled",
+            "value": "Non Disabled"
+          }
+        }
       }
     }
   }
