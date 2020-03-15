@@ -1,0 +1,839 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0",
+    "description": "Accessibility Tool API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/output-areas": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoJSON-Feature-Collection"
+                },
+                "examples": {
+                  "University of Warwick": {
+                    "value": {
+                      "type": "FeatureCollection",
+                      "features": [
+                        {
+                          "type": "Feature",
+                          "properties": {
+                            "stroke": "#555555",
+                            "stroke-width": 2,
+                            "stroke-opacity": 1,
+                            "fill": "#555555",
+                            "fill-opacity": 0.5
+                          },
+                          "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [
+                              [
+                                [
+                                  -1.5616464614868162,
+                                  52.37077828509749
+                                ],
+                                [
+                                  -1.5622901916503906,
+                                  52.373791403989124
+                                ],
+                                [
+                                  -1.5561962127685547,
+                                  52.37724968708041
+                                ],
+                                [
+                                  -1.553363800048828,
+                                  52.38060291509318
+                                ],
+                                [
+                                  -1.5530633926391602,
+                                  52.38235801885472
+                                ],
+                                [
+                                  -1.5543937683105469,
+                                  52.38447976756064
+                                ],
+                                [
+                                  -1.557912826538086,
+                                  52.385056027378766
+                                ],
+                                [
+                                  -1.562376022338867,
+                                  52.385501313904584
+                                ],
+                                [
+                                  -1.5654659271240234,
+                                  52.38605136752974
+                                ],
+                                [
+                                  -1.5667963027954102,
+                                  52.385344154467134
+                                ],
+                                [
+                                  -1.5661525726318357,
+                                  52.383327225358606
+                                ],
+                                [
+                                  -1.566925048828125,
+                                  52.383091474383455
+                                ],
+                                [
+                                  -1.568942070007324,
+                                  52.38358916941018
+                                ],
+                                [
+                                  -1.5696287155151367,
+                                  52.382803332593134
+                                ],
+                                [
+                                  -1.5717315673828125,
+                                  52.38319625275005
+                                ],
+                                [
+                                  -1.5766239166259763,
+                                  52.38026236449064
+                                ],
+                                [
+                                  -1.5773534774780271,
+                                  52.37895253000267
+                                ],
+                                [
+                                  -1.576066017150879,
+                                  52.37785223900584
+                                ],
+                                [
+                                  -1.5703153610229492,
+                                  52.378297598188176
+                                ],
+                                [
+                                  -1.5691137313842773,
+                                  52.376516134508854
+                                ],
+                                [
+                                  -1.570272445678711,
+                                  52.37389620442528
+                                ],
+                                [
+                                  -1.567697525024414,
+                                  52.37284818887275
+                                ],
+                                [
+                                  -1.564650535583496,
+                                  52.372297970752534
+                                ],
+                                [
+                                  -1.5628910064697266,
+                                  52.37049006295402
+                                ],
+                                [
+                                  -1.5616464614868162,
+                                  52.37077828509749
+                                ]
+                              ]
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-output-areas",
+        "description": "Index all output areas in GeoJSON format"
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Metric"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "output_area_id": 1,
+                        "accessibility": 100
+                      },
+                      {
+                        "output_area_id": 2,
+                        "accessibility": 90
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-metrics",
+        "description": "Get metrics given a number of input parameters. If an input parameter is not included, it is to be assumed that no filter applies.\nMany parameters will be supplied with parameters from /meta endpoints. In this case, parameters will be passed through in kebab-case, but displayed to the user in Title Case.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "description": "Minimum age demographic",
+            "name": "demographic-age-min"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "demographic-age-max",
+            "description": "Maximum age demographic"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "demographic-ethnicity",
+            "description": "Array of ethnicities"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "demographic-employment",
+            "description": "Array of employment statuses"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "demographic-disability",
+            "description": "Array of disability statuses"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "accessibility-metric",
+            "description": "The accessibility metric to use"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "geographic-area",
+            "description": "The geographic areas to use"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "time-strata",
+            "description": "The time strata to use"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "point-of-interest-types",
+            "description": "Points of interest to use"
+          }
+        ]
+      }
+    },
+    "/meta/ethnicity": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "key": "vulcan",
+                        "value": "Vulcan"
+                      },
+                      {
+                        "key": "andorian",
+                        "value": "Andorian"
+                      },
+                      {
+                        "key": "klingon",
+                        "value": "Klingon"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-ethnicity",
+        "description": "Index all ethnicities known by the system"
+      }
+    },
+    "/meta/employment-status": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "employed",
+                        "value": "Employed"
+                      },
+                      {
+                        "key": "self-employed",
+                        "value": "Self Employed"
+                      },
+                      {
+                        "key": "company-director",
+                        "value": "Company Director"
+                      },
+                      {
+                        "key": "unemployed",
+                        "value": "Unemployed"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-employment-status",
+        "description": "Index all employment statuses known by the system"
+      }
+    },
+    "/meta/disability-status": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "non-disabled",
+                        "value": "Non Disabled"
+                      },
+                      {
+                        "key": "disabled",
+                        "value": "Disabled"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-disability-status",
+        "description": "Index all disability statuses known by the system"
+      }
+    },
+    "/meta/accessibility-metric": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "average-journey-cost",
+                        "value": "Average journey cost"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-accessibility-metric",
+        "description": "Index all accessibility metrics known by the system"
+      }
+    },
+    "/meta/geographic-area": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "birmingham",
+                        "value": "Birmingham"
+                      },
+                      {
+                        "key": "coventry",
+                        "value": "Coventry"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-geographic-area",
+        "description": "Index all geographic areas the system has data for"
+      }
+    },
+    "/meta/time-strata": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "wd-am-p",
+                        "value": "Weekday AM Peak"
+                      },
+                      {
+                        "key": "wd-pm-p",
+                        "value": "Weekday PM Peak"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-time-strata",
+        "description": "Index all time stratas the system can produce metrics with"
+      }
+    },
+    "/meta/point-of-interest-type": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "Example": {
+                    "value": [
+                      {
+                        "key": "church",
+                        "value": "Church"
+                      },
+                      {
+                        "key": "university",
+                        "value": "University"
+                      },
+                      {
+                        "key": "hospital",
+                        "value": "Hospital"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-point-of-interest-type",
+        "description": "Index all known point of interest types"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {},
+    "schemas": {
+      "GeoJSON-Feature-Collection": {
+        "title": "GeoJSON Feature Collection",
+        "type": "object",
+        "description": "A collection of GeoJSON features",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "FeatureCollection"
+            ],
+            "example": "FeatureCollection",
+            "description": "Type field. This will always be \"Feature Collection\""
+          },
+          "features": {
+            "type": "array",
+            "uniqueItems": false,
+            "description": "List of GeoJSON features",
+            "items": {
+              "$ref": "#/components/schemas/GeoJSON-Feature"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "features"
+        ],
+        "x-examples": {
+          "University of Warwick": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "properties": {
+                  "stroke": "#555555",
+                  "stroke-width": 2,
+                  "stroke-opacity": 1,
+                  "fill": "#555555",
+                  "fill-opacity": 0.5
+                },
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        -1.5616464614868162,
+                        52.37077828509749
+                      ],
+                      [
+                        -1.5622901916503906,
+                        52.373791403989124
+                      ],
+                      [
+                        -1.5561962127685547,
+                        52.37724968708041
+                      ],
+                      [
+                        -1.553363800048828,
+                        52.38060291509318
+                      ],
+                      [
+                        -1.5530633926391602,
+                        52.38235801885472
+                      ],
+                      [
+                        -1.5543937683105469,
+                        52.38447976756064
+                      ],
+                      [
+                        -1.557912826538086,
+                        52.385056027378766
+                      ],
+                      [
+                        -1.562376022338867,
+                        52.385501313904584
+                      ],
+                      [
+                        -1.5654659271240234,
+                        52.38605136752974
+                      ],
+                      [
+                        -1.5667963027954102,
+                        52.385344154467134
+                      ],
+                      [
+                        -1.5661525726318357,
+                        52.383327225358606
+                      ],
+                      [
+                        -1.566925048828125,
+                        52.383091474383455
+                      ],
+                      [
+                        -1.568942070007324,
+                        52.38358916941018
+                      ],
+                      [
+                        -1.5696287155151367,
+                        52.382803332593134
+                      ],
+                      [
+                        -1.5717315673828125,
+                        52.38319625275005
+                      ],
+                      [
+                        -1.5766239166259763,
+                        52.38026236449064
+                      ],
+                      [
+                        -1.5773534774780271,
+                        52.37895253000267
+                      ],
+                      [
+                        -1.576066017150879,
+                        52.37785223900584
+                      ],
+                      [
+                        -1.5703153610229492,
+                        52.378297598188176
+                      ],
+                      [
+                        -1.5691137313842773,
+                        52.376516134508854
+                      ],
+                      [
+                        -1.570272445678711,
+                        52.37389620442528
+                      ],
+                      [
+                        -1.567697525024414,
+                        52.37284818887275
+                      ],
+                      [
+                        -1.564650535583496,
+                        52.372297970752534
+                      ],
+                      [
+                        -1.5628910064697266,
+                        52.37049006295402
+                      ],
+                      [
+                        -1.5616464614868162,
+                        52.37077828509749
+                      ]
+                    ]
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "GeoJSON-Feature": {
+        "title": "GeoJSON-Feature",
+        "type": "object",
+        "x-examples": {},
+        "description": "A single GeoJSON feature",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Feature"
+            ],
+            "example": "Feature",
+            "description": "Type field. This will always be 'Feature'"
+          },
+          "properties": {
+            "type": "object",
+            "description": "Custom object of properties"
+          },
+          "geometry": {
+            "type": "object",
+            "required": [
+              "type",
+              "coordinates"
+            ],
+            "description": "The geometry that the feature describes",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "The type of geometry",
+                "enum": [
+                  "Point",
+                  "LineString",
+                  "Polygon",
+                  "MultiPoint",
+                  "MultiLineString",
+                  "MultiPolygon"
+                ],
+                "example": "Polygon"
+              },
+              "coordinates": {
+                "type": "array",
+                "description": "Array of [Array of [coordinate]]",
+                "items": {
+                  "$ref": "#/components/schemas/GeoJSON-Coordinates"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "type",
+          "properties",
+          "geometry"
+        ]
+      },
+      "GeoJSON-Coordinates": {
+        "title": "GeoJSON-Coordinates",
+        "type": "array",
+        "description": "A GeoJSON Coordinate list",
+        "items": {
+          "$ref": "#/components/schemas/GeoJSON-Coordinate"
+        }
+      },
+      "GeoJSON-Coordinate": {
+        "type": "array",
+        "title": "GeoJSON-Coordinate",
+        "example": "[-1.5616464614868162,52.37077828509749]",
+        "maxItems": 2,
+        "minItems": 2,
+        "items": {
+          "type": "integer"
+        },
+        "x-examples": {
+          "Example 1": [
+            -1.5616464614868162,
+            52.37077828509749
+          ],
+          "Example 2": [
+            -1.5622901916503906,
+            52.373791403989124
+          ],
+          "Example 3": [
+            -1.5561962127685547,
+            52.37724968708041
+          ]
+        },
+        "description": "A GeoJSON coordinate is a list of [latitude, longitude]"
+      },
+      "Metric": {
+        "title": "Metric",
+        "type": "object",
+        "description": "A metric is a collection of data about one output area",
+        "x-examples": {
+          "Example 1": {
+            "output_area_id": 1,
+            "accessibility": 100
+          }
+        },
+        "properties": {
+          "output_area_id": {
+            "type": "number",
+            "description": "ID of the output area this metric applies to"
+          },
+          "accessibility": {
+            "type": "number",
+            "description": "Accessibility metric for this output area"
+          }
+        },
+        "required": [
+          "output_area_id",
+          "accessibility"
+        ]
+      },
+      "Key-Value-Pair": {
+        "title": "Key-Value-Pair",
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "description": "A standard key-value pair model. Common usage is to display the value to the user, but be using the key behind the scenes.",
+        "x-examples": {
+          "Example 1": {
+            "key": "self-employed",
+            "value": "Self Employed"
+          },
+          "Example 2": {
+            "key": "non-disabled",
+            "value": "Non Disabled"
+          }
+        }
+      }
+    }
+  }
+}
