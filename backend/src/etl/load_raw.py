@@ -109,7 +109,7 @@ def load_shp_to_db(src_dir, dst_table, credentials):
                 print("Found Shapefile")
                 shapefile = file
                 print("Loading " + file)
-                command = f'''shp2pgsql -I -s 4326 -d {shapefile} {dst_table} | psql -U {credentials['user']} -d {credentials['dbname']}'''
+                command = f'''shp2pgsql -I -s 4326 -d {shapefile} {dst_table} | psql -q -U {credentials['user']} -d {credentials['dbname']}'''
                 print(f"Uploading file {shapefile}")
                 subprocess.call(command, shell=True)
                 print("Done")

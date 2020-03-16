@@ -5,7 +5,6 @@
 import os
 import settings
 from etl.load_raw import load_data_dict, load_text, load_gis, load_osm
-# import etl.api_load_data as api_load_data
 from utils import *
 
 
