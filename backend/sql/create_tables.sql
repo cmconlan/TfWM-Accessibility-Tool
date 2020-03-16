@@ -430,8 +430,5 @@ CREATE TABLE if not exists raw.wmca_rail_stations_uk (
 );
 
 
--- Enables compact store of OSM data.
--- commented bc throws psycopg2 error: extension "hstore" already exists
--- Uncomment below if you want to see OSM tags.
-
---create extension hstore;
+CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS postgis
