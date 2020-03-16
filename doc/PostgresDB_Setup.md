@@ -127,12 +127,4 @@ postgres=# \q
 ```
 ### 3 Install Python requirements
 
-Install Python3 and Python3 Development package:
-```
-sudo yum install python3 python3-devel
-```
-Navigate to the project `backend` folder and Install the project dependenices:
-```
-cd path/to/backend
-sudo PATH=$PATH:/usr/pgsql-10/bin/ pip3 install -r requirements.txt
-```
+*To be continued...*
