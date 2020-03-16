@@ -116,7 +116,7 @@ $ sudo yum -y install epel-release
 ```
 Install PostGIS version 2.4 for Postgres version 10:
 ```
-$ sudo yum install postgis24_10
+$ sudo yum install postgis24_10 postgis24_10-client
 ```
 You can verify the installation of PostGIS by logging in to the Postgres database and creating the PostGIS extension (this will be done automatically for you in the ETL scripts).
 ```
