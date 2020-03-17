@@ -3,6 +3,8 @@
 ### Prerequisites
 
 - A user account with `sudo` privileges.
+- No previous installations of Postgres.
+- CentOS 7
 
 ### Setup Overview
 1. Install Postgres version 10 and setup a database.

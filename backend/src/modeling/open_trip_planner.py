@@ -7,7 +7,8 @@ import csv
 
 # class Trip:
 #     def __init__(self, trip_id, total_time, walk_time,
-#                  transfer_wait_time, initial_wait_time, transit_time, walk_dist, transit_dist, total_dist,
+#                  transfer_wait_time, initial_wait_time, transit_time, 
+#                  walk_dist, transit_dist, total_dist,
 #                  num_transfers, fare):
 #         self.trip_id = trip_id
 #         self.total_time = total_time
@@ -31,15 +32,13 @@ def request_otp(host_url, lat_oa, lat_poi, lon_oa, lon_poi, date, time):
         "time": f"{time}",
         "mode": "TRANSIT,WALK",
         "arriveBy": "false",
-        "numItineraries": "1"}
-    # Passing header instructions forces OTP to return xml
-    # or json
-    # vectorized_resp = np.vectorize(lambda url={'accept': 'application/xml'}: requests.get(url,params,headers={'accept': 'application/xml'}))
-    # resp=vectorized_resp(df.URL)
-    resp = requests.get(url=url,
-                        params=params,
-                        headers={'accept': 'application/xml'}
-                        )
+        "numItineraries": "1"
+    }
+    resp = requests.get(
+        url=url,
+        params=params,
+        headers={'accept': 'application/xml'}
+    )
     return resp
 
 
@@ -71,13 +70,11 @@ def parse_response(response, date, time):
             total_dist = 0.0
             num_transfers = 0
             initial_wait_time = 0.0
-            print("Too close")
-            
+            print("Too close")  
     else:
         plan = xml.find('plan')
         for itineraries in plan.findall('itineraries'):
-            if itineraries.find(
-                    'itineraries') is not None:  # Note that this line discards error xmls, where there was no route
+            if itineraries.find('itineraries') is not None:  # Note that this line discards error xmls, where there was no route
                 for itinerary in itineraries.findall('itineraries'):
                     departure_time = datetime.fromtimestamp(float(itinerary.find('startTime').text) / 1000)
                     departure_time += timedelta(hours=1)
@@ -91,8 +88,7 @@ def parse_response(response, date, time):
                     num_transfers = int(itinerary.find('transfers').text)
 
                     for legs in itinerary.findall('legs'):
-                        if legs.find(
-                                'legs') is not None:
+                        if legs.find('legs') is not None:
                             for leg in legs.findall('legs'):
                                 if total_dist is None:
                                     total_dist = 0.0
@@ -100,8 +96,7 @@ def parse_response(response, date, time):
                     if itinerary.find('fare') is not None:
                         fare_obj = itinerary.find('fare')
                         if fare_obj.find('details') is not None:
-                            fare = float(fare_obj.find('details').find('regular').find('price').find(
-                                'cents').text) / 100
+                            fare = float(fare_obj.find('details').find('regular').find('price').find('cents').text) / 100
 
                     # capture the wait time before the first bus arrives
 

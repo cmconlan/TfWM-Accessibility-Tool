@@ -52,17 +52,9 @@ def create_timestamps(time_defs, time_strata, n_timepoints, engine, suffix, rsee
     None
     """
     seed(rseed)
-    # if mode == 'append':
-    #     strata_exist = pd.read_sql_query(sql=f"SELECT DISTINCT stratum FROM model.timestamps", con=engine)[
-    #         'stratum'].tolist()
-    #     for st in strata_exist:
-    #         time_strata.pop(st, None)
 
-    # start by unpacking inputs into datetimes
     start_date_str = time_defs.get('term')['start_date']
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    if start_date <= datetime.now().date():
-        start_date = datetime.now().date() + timedelta(days=1)
 
     end_date_str = time_defs.get('term')['end_date']
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
@@ -282,13 +274,16 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, psql_credentials, csv_d
                              chunksize=chunksize):
         # Get OTP response
         print(f"Getting response from Chunk {count} on OTP {host_url}, for results.trip{suffix}{id_}")
-        chunk['response'] = chunk.apply(lambda row: otp.request_otp(host_url, row.oa_lat, row.poi_lat, row.oa_lon,
-                                                                    row.poi_lon, row.date, row.time), axis=1)
+        chunk['response'] = chunk.apply(
+            lambda row: otp.request_otp(host_url, row.oa_lat, row.poi_lat, row.oa_lon, row.poi_lon, row.date, row.time),
+            axis=1
+        )
 
         # Parse OTP response
         chunk[["departure_time", "arrival_time", "total_time", "walk_time", "transfer_wait_time", "initial_wait_time",
                "transit_time", "walk_dist", "transit_dist", "total_dist", "num_transfers", "fare"]] = chunk.apply(
             lambda row: otp.parse_response(row.response, row.date, row.time), axis=1, result_type="expand")
+            
         chunk = chunk[["trip_id", "departure_time", "arrival_time", "total_time", "walk_time", "transfer_wait_time",
                        "initial_wait_time", "transit_time", "walk_dist", "transit_dist", "total_dist",
                        "num_transfers", "fare"]]
@@ -349,10 +344,7 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, psql_credentia
 
     host_urls = [f"http://{host}:{port}"] * num_splits
 
-    num_trips = \
-        execute_sql(f"SELECT count(*) FROM model.trips{suffix};", engine, read_file=False, return_df=True)[
-            'count'].values[
-            0]  # execute sql query to get count of model.trips table
+    num_trips = execute_sql(f"SELECT count(*) FROM model.trips{suffix};", engine, read_file=False, return_df=True)['count'].values[0]
     step_size = int(np.ceil(num_trips / num_splits))  # number of rows to send to each otp
     offsets = np.arange(0, num_trips, step_size)
     limits = [step_size] * num_splits
