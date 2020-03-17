@@ -53,7 +53,7 @@ populations:
   lone_parent_hh:
     - lone_parent_total
   semi_un_skilled:
-    - grade_de   
+    - grade_de
   imd_deprived:
     - deprived_1_dim
     - deprived_2_dim
@@ -64,12 +64,12 @@ populations:
 # For each POI type, the value is # of nearest POIs included for each OA; if not specified (empty dict), use
 # hyper_params['k_POI']
 points_of_interest:
-    #Hospital: 2
-    #Job Centre: 2
-    #Strategic Centre: 1
-    #School: 3 
-    #Childcare: 3
-    Rail Station: 2
+  #Hospital: 2
+  #Job Centre: 2
+  #Strategic Centre: 1
+  #School: 3
+  #Childcare: 3
+  Rail Station: 2
 
 # Dict of time definitions, used for stratified sampling of timestamps
 time_defs:
@@ -92,8 +92,8 @@ time_defs:
     sunday:
       - Sunday
   term:
-    start_date: 2019-9-1
-    end_date: 2019-10-1
+    start_date: 2020-1-10
+    end_date: 2020-2-10
 
 # List of time strata (segments)
 # For each stratum, sample n_sample timepoints if specified, otherwise hyper_params['n_timepoints']
@@ -101,7 +101,6 @@ time_strata:
   Weekday (AM peak):
     time_of_day: am peak
     day_of_week: weekday
-#    n_sample: 2
   Weekday (PM peak):
     time_of_day: pm peak
     day_of_week: weekday
@@ -122,23 +121,11 @@ time_strata:
 hyper_params:
   n_timepoint: 30
   k_POI: 3
-#  maxMemory: 2
-#  maxWalkDistance: # currently not used
-#    - Inf
-#  numItineraries: # currently not used
-#    - 1
 
 ## Metrics Returned
-# (all are parsed from XML in split_trips bc no cost, but this determines which are written 
+# (all are parsed from XML in split_trips bc no cost, but this determines which are written
 # to vis.map_attributes as unnecessary metrics at that stage make the dash load slowly
 metrics:
-   - total_time
-#   - walk_time
-#  - transfer_wait_time
-#   - initial_wait_time
-#  - transit_time
+  - total_time
   - walk_dist
-#  - transit_dist
-#  - total_dist
-#   - num_transfers
-   - fare 
+  - fare
