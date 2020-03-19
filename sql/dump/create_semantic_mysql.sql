@@ -1,5 +1,5 @@
 # Converted with pg2mysql-1.9
-# Converted on Thu, 19 Mar 2020 21:20:21 +0000
+# Converted on Thu, 19 Mar 2020 21:24:41 +0000
 # Lightbox Technologies Inc. http://www.lightbox.ca
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
@@ -182,7 +182,7 @@ CREATE TABLE semantic.oa (
     usual_residents_area_hectares double precision,
     usual_residents_density_persons_per_hectare double precision,
     lsoa11 varchar(255)
-) ENGINE=XtraDB;
+) ENGINE=innodb;
 
 CREATE TABLE semantic.pcd (
     pcd text NOT NULL,
@@ -193,7 +193,7 @@ CREATE TABLE semantic.pcd (
     lon double precision,
     lat double precision,
     cty16nm varchar(255)
-) ENGINE=XtraDB;
+) ENGINE=innodb;
 
 CREATE TABLE semantic.poi (
     `type` varchar(255),
@@ -202,7 +202,7 @@ CREATE TABLE semantic.poi (
     snapped_longitude double precision,
     snapped_location public.geometry(Point,4326),
     id int(11) NOT NULL
-) ENGINE=XtraDB;
+) ENGINE=innodb;
 
 ALTER TABLE semantic.oa
     ADD CONSTRAINT oa_pkey PRIMARY KEY (oa11);
