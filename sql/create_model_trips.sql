@@ -5,6 +5,8 @@ CREATE TABLE model.trips{suffix} AS (
         row_number() over () as trip_id,
         oa_id,
         poi_id,
+		poi_type,
+		stratum,
         date,
         time,
         0 AS computed

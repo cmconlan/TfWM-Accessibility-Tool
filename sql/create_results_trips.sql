@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS results.trips{suffix};
 CREATE TABLE IF NOT EXISTS results.trips{suffix} (
     trip_id int,
+	poi_type varchar,
+	strata varchar,
     departure_time varchar,
     arrival_time varchar,
     total_time float,
