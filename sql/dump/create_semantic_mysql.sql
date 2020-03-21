@@ -5,11 +5,11 @@
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone="+00:00";
 
-CREATE TABLE semantic.oa (
+CREATE TABLE IF NOT EXISTS oa (
     oa11 varchar(255) NOT NULL,
-    geometry public.geometry(MultiPolygon,4326),
-    centroid public.geometry(Point,4326),
-    snapped_centroid public.geometry,
+    geometry MultiPolygon,
+    centroid Point,
+    snapped_centroid geometry,
     snapped_latitude double precision,
     snapped_longitude double precision,
     year int(11),
@@ -184,29 +184,29 @@ CREATE TABLE semantic.oa (
     lsoa11 varchar(255)
 ) ENGINE=innodb;
 
-CREATE TABLE semantic.pcd (
-    pcd text NOT NULL,
+CREATE TABLE IF NOT EXISTS pcd (
+    pcd varchar(255) NOT NULL,
     oa11 varchar(255),
     lsoa11 varchar(255),
     msoa11 varchar(255),
-    centroid public.geometry(Point,4326),
+    centroid Point,
     lon double precision,
     lat double precision,
     cty16nm varchar(255)
 ) ENGINE=innodb;
 
-CREATE TABLE semantic.poi (
+CREATE TABLE IF NOT EXISTS poi (
     `type` varchar(255),
     name varchar(255),
     snapped_latitude double precision,
     snapped_longitude double precision,
-    snapped_location public.geometry(Point,4326),
+    snapped_location Point,
     id int(11) NOT NULL
 ) ENGINE=innodb;
 
-ALTER TABLE semantic.oa
+ALTER TABLE oa
     ADD CONSTRAINT oa_pkey PRIMARY KEY (oa11);
-ALTER TABLE semantic.pcd
+ALTER TABLE pcd
     ADD CONSTRAINT pcd_pkey PRIMARY KEY (pcd);
-ALTER TABLE semantic.poi
+ALTER TABLE poi
     ADD CONSTRAINT poi_pkey PRIMARY KEY (id);
