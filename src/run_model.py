@@ -32,7 +32,7 @@ def run(mode='replace', suffix='', chunksize=10000):
     SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
     RESULTS_FOLDER = os.path.join(ROOT_FOLDER, 'results/')
 
-    psql_credentials = settings.get_psql()
+    mariadb_credentials = settings.get_mariadb()
 
     host, port, num_splits = settings.get_otp_settings()
 
@@ -49,7 +49,7 @@ def run(mode='replace', suffix='', chunksize=10000):
     print('Model parameters loaded')
 
     # Create SQLAlchemy engine from database credentials
-    engine = create_connection_from_dict(psql_credentials, 'postgresql')
+    engine = create_connection_from_dict(mariadb_credentials, 'mysql+mysqldb')
     print('Database connected')
 
     # Sample timestamps and write to MODEL.timestamps
