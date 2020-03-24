@@ -538,6 +538,44 @@
         "operationId": "get-meta-point-of-interest-type",
         "description": "Index all known point of interest types"
       }
+    },
+    "/meta/population-metric": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Key-Value-Pair"
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": [
+                      {
+                        "key": "population-counts",
+                        "value": "Population Counts"
+                      },
+                      {
+                        "key": "at-risk-score",
+                        "value": "At Risk Score"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-meta-population-metric",
+        "description": "Index all population metrics known by the system"
+      }
     }
   },
   "components": {
