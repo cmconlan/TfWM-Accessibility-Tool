@@ -137,7 +137,6 @@ def create_k_poi(sql_dir, k_poi, poi_dict, engine, suffix):
     execute_sql(sql_file, engine, read_file=True, params=params)
     print(f'K nearest POIs saved to model.k_poi{suffix}')
 
-
 def create_trips(sql_dir, engine, suffix, mode='replace'):
     """
     Configure trip info for each OTP query and save to MODEL.trips
@@ -167,6 +166,33 @@ def create_trips(sql_dir, engine, suffix, mode='replace'):
     params = {'suffix': suffix}
     execute_sql(sql_file, engine, params=params, read_file=True)
     print(f'Trips info saved to MODEL.trips{suffix}')
+    
+def create_otp_trips(sql_dir, engine, suffix, mode='replace'):
+    """
+    Create dataset to be read into OTP tool
+
+    Parameters
+    ----------
+    sql_dir : string
+        Directory that stores create_model_trips.sql and append_model_trips.sql
+
+    engine: a SQLAlchemy engine object
+    
+    suffix : str
+        Suffix to append to name 'MODEL.trips' as the table name
+
+    mode : str
+        If 'replace', overwrite existing MODEL.trips; if 'append', append to that existing table
+
+    Returns
+    ----------
+    None
+    """
+
+    sql_file = os.path.join(sql_dir, 'create_model_otp_trips.sql')
+    params = {'suffix': suffix}
+    execute_sql(sql_file, engine, params=params, read_file=True)
+    print(f'Trips info saved to MODEL.otp_trips{suffix}')
 
 
 def compute_populations(sql_dir, populations, engine):
@@ -221,7 +247,7 @@ def compute_populations(sql_dir, populations, engine):
     print('OA-level demographics saved to RESULTS.populations')
 
 
-def compute_trips(id_, host_url, offset, limit, sql_dir, psql_credentials, csv_dir, suffix, chunksize):
+def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, csv_dir, suffix, chunksize):
     """
     Compute query result from Open Trip Planner and save to RESULTS.trips (for example see Google Docs) for each given
     trip, defined by the following attributes/parameters:
@@ -246,7 +272,7 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, psql_credentials, csv_d
         Number of rows to limit query to. {offset} + {limit} gives the end trip number of the table
     sql_dir : str
         Directory that stores query_trip_info.sql
-    psql_credentials : dict
+    mariadb_credentials : dict
         Dictionary of PSQL credentials in order to create SQLAlchemy engine
     csv_dir : str
         Directory to save results in csv formats
@@ -264,48 +290,36 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, psql_credentials, csv_d
     print(f"{id_} on {host_url} for offset {offset} limit {limit}")
 
     query_sql_file = os.path.join(sql_dir, 'query_trip_info.sql')
-    params = {'suffix': suffix, 'limit': limit, 'offset': offset}
-    engine = create_connection_from_dict(psql_credentials, 'postgresql')
+    params = {'limit': limit, 'offset': offset}
+    engine = create_connection_from_dict(mariadb_credentials, 'mysql+mysqldb')
 
     count = 1
-
+    
     # We chunk up the portion received in order to not crash a DF's memory
     for chunk in execute_sql(query_sql_file, engine, read_file=True, return_df=True, params=params,
-                             chunksize=chunksize):
+                             chunksize=chunksize, print_=True):
+        print(f"{id_}: Got chunk {count}")
         # Get OTP response
         print(f"Getting response from Chunk {count} on OTP {host_url}, for results.trip{suffix}{id_}")
-        chunk['response'] = chunk.apply(
-            lambda row: otp.request_otp(host_url, row.oa_lat, row.poi_lat, row.oa_lon, row.poi_lon, row.date, row.time),
-            axis=1
-        )
+        chunk['response'] = chunk.apply(lambda row: otp.request_otp(host_url, row.oa_lat, row.poi_lat, row.oa_lon,
+                                                                    row.poi_lon, row.date, row.time), axis=1)
 
         # Parse OTP response
         chunk[["departure_time", "arrival_time", "total_time", "walk_time", "transfer_wait_time", "initial_wait_time",
                "transit_time", "walk_dist", "transit_dist", "total_dist", "num_transfers", "fare"]] = chunk.apply(
             lambda row: otp.parse_response(row.response, row.date, row.time), axis=1, result_type="expand")
-            
+
         chunk = chunk[["trip_id", "departure_time", "arrival_time", "total_time", "walk_time", "transfer_wait_time",
                        "initial_wait_time", "transit_time", "walk_dist", "transit_dist", "total_dist",
                        "num_transfers", "fare"]]
         chunk.num_transfers = chunk.num_transfers.astype(pd.Int16Dtype())
         chunk.set_index('trip_id', inplace=True)
-
-        # Write response to CSV
-        print(f"Writing response to CSV from chunk {count} on OTP {host_url}, for results.trip{suffix}{id_}")
-        chunk.to_csv(os.path.join(csv_dir, f"trips{suffix}{id_}.csv"), mode='a', header=False)
+        chunk.to_sql('results', engine, index=True, if_exists='append')
+        print(f"{id_}: Inserted Chunk {count} into results")
         count += 1
 
-    # Copy CSV with this portion to DB
-    print(f"Copying csv's to db for results.trips{suffix}{id_}")
-    copy_text_to_db(os.path.join(csv_dir, f"trips{suffix}{id_}.csv"), f'results.trips{suffix}', engine, mode='append',
-                    header=False)
 
-    # Update the model trips table so we know these trips have been computed, if we ever re-run the pipeline with "append" mode
-    update_sql_file = os.path.join(sql_dir, 'update_computed_model_trips.sql')
-    execute_sql(update_sql_file, engine, read_file=True, params=params)
-
-
-def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, psql_credentials, suffix, mode, chunksize):
+def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, mariadb_credentials, suffix, chunksize):
     """
     Parameters
     ----------
@@ -320,7 +334,7 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, psql_credentia
     csv_dir : str
         Directory where result CSVs are stored
     engine : SQLAlchemy engine object
-    psql_credentials : dict
+    mariadb_credentials : dict
         Dictionary of PSQL credentials
     suffix : str
         Suffix (if any) to append to table names
@@ -336,20 +350,14 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, psql_credentia
     
     """
 
-    # Set up 
-    params = {'suffix': suffix}
-
-    # Str to Int
     num_splits = int(num_splits)
 
     host_urls = [f"http://{host}:{port}"] * num_splits
 
-    num_trips = execute_sql(f"SELECT count(*) FROM model.trips{suffix};", engine, read_file=False, return_df=True)['count'].values[0]
+    num_trips = execute_sql(f"SELECT count(*) AS count FROM otp_trips;", engine, read_file=False, return_df=True)['count'].values[0]
     step_size = int(np.ceil(num_trips / num_splits))  # number of rows to send to each otp
     offsets = np.arange(0, num_trips, step_size)
     limits = [step_size] * num_splits
-
-    # TODO: maybe change the data inputs below later, a little hacky
 
     data = np.zeros(shape=(num_splits, 9), dtype=object)
 
@@ -358,31 +366,12 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, psql_credentia
     data[:, 2] = offsets  # offsets
     data[:, 3] = limits  # limits
     data[:, 4] = [sql_dir] * num_splits  # constant sql dir
-    data[:, 5] = [psql_credentials] * num_splits  # constant credentials (since can't pass an eng directly)
+    data[:, 5] = [mariadb_credentials] * num_splits  # constant credentials (since can't pass an eng directly)
     data[:, 6] = [csv_dir] * num_splits  # constant results dir
     data[:, 7] = [suffix] * num_splits  # constant suffix
     data[:, 8] = [chunksize] * num_splits  # constant chunksize
 
     data = data.tolist()
-
-    # If replacing table,
-    if mode == 'replace':
-
-        # Set computed back to 0 for this model trips
-        # This should work even if first time running this result, because model.trips should have
-        # already been created.
-        execute_sql(f"UPDATE model.trips{suffix} SET computed=0;", engine, read_file=False)
-
-        # Delete results CSVs
-        try:
-            subprocess.call(f"rm {csv_dir}trips{suffix}*", shell=True)
-        except:  # If first time creating table
-            "First time creating table, no CSV's to delete."
-
-        # Destroy existing results.trips table
-        create_table_sql_file = os.path.join(sql_dir, 'create_results_trips.sql')
-        execute_sql(create_table_sql_file, engine, read_file=True, params=params)
-
     # Execute queries on separate threads
 
     start = time.time()

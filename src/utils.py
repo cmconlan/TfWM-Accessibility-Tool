@@ -193,6 +193,7 @@ def execute_sql(string, engine, read_file, print_=False, return_df=False, chunks
 
     if print_:
         print('Query executed')
+        print(query)
 
     if return_df:
         res_df = pd.read_sql_query(query, engine, chunksize=chunksize)
