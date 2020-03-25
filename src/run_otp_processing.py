@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     mariadb_credentials = settings.get_mariadb()
 
-    host, port, num_splits = settings.get_otp_settings()
+    host, port, threads = settings.get_otp_settings()
 
     # Load model configuration
     model_config = os.path.join(ROOT_FOLDER, 'config/base/model_config.yaml')
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     engine = create_connection_from_dict(mariadb_credentials, 'mysql+mysqldb')
     print('Database connected')
 
-    model_functions.split_trips(host, port, num_splits, SQL_FOLDER, RESULTS_FOLDER,
+    model_functions.split_trips(host, port, threads, SQL_FOLDER, RESULTS_FOLDER,
                             engine, mariadb_credentials, suffix=suffix, chunksize=chunksize)

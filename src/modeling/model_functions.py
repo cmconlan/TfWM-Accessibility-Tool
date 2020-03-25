@@ -319,7 +319,7 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, cs
         count += 1
 
 
-def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, mariadb_credentials, suffix, chunksize):
+def split_trips(host, port, threads, sql_dir, engine, mariadb_credentials):
     """
     Parameters
     ----------
@@ -327,8 +327,8 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, mariadb_creden
         Host IP address e.g. '0.0.0.0'
     port : str
         Port number of load balancer e.g. '8888'
-    num_splits : int
-        The number of times we want to split MODEL.trips (in practice, corresponds to number of OTP's)
+    threads : int
+        Number of threads running OTP processing in parallel
     sql_dir : str
         Directory where SQL files are stored
     csv_dir : str
@@ -350,33 +350,27 @@ def split_trips(host, port, num_splits, sql_dir, csv_dir, engine, mariadb_creden
     
     """
 
-    num_splits = int(num_splits)
-
-    host_urls = [f"http://{host}:{port}"] * num_splits
-
     num_trips = execute_sql(f"SELECT count(*) AS count FROM otp_trips;", engine, read_file=False, return_df=True)['count'].values[0]
-    step_size = int(np.ceil(num_trips / num_splits))  # number of rows to send to each otp
-    offsets = np.arange(0, num_trips, step_size)
-    limits = [step_size] * num_splits
+    step_size = int(np.ceil(num_trips / threads))  # number of rows to send to each thread
+    offsets = np.arange(0, num_trips, step_size) # The offset that defines the portion of the table that threads are processing
+    limits = [step_size] * threads # max amount of rows a thread will process
 
-    data = np.zeros(shape=(num_splits, 9), dtype=object)
+    data = np.zeros(shape=(threads, 6), dtype=object)
 
-    data[:, 0] = np.arange(1, num_splits + 1)  # ID's
-    data[:, 1] = host_urls  # host_urls
+    # Each row of data is a tuple passed as input to compute_trips
+    data[:, 0] = np.arange(1, threads + 1)  # ID's
+    data[:, 1] = [f"http://{host}:{port}"] * threads  # host_urls
     data[:, 2] = offsets  # offsets
     data[:, 3] = limits  # limits
-    data[:, 4] = [sql_dir] * num_splits  # constant sql dir
-    data[:, 5] = [mariadb_credentials] * num_splits  # constant credentials (since can't pass an eng directly)
-    data[:, 6] = [csv_dir] * num_splits  # constant results dir
-    data[:, 7] = [suffix] * num_splits  # constant suffix
-    data[:, 8] = [chunksize] * num_splits  # constant chunksize
+    data[:, 4] = [sql_dir] * threads  # constant sql dir
+    data[:, 5] = [mariadb_credentials] * threads  # constant credentials (since can't pass an eng directly)
 
     data = data.tolist()
     # Execute queries on separate threads
 
     start = time.time()
 
-    pool = multiprocessing.Pool(num_splits)
+    pool = multiprocessing.Pool(int(threads))
     results = pool.starmap(compute_trips, [tuple(row) for row in data])
     pool.close()
 
