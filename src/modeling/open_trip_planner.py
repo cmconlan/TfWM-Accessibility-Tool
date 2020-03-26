@@ -70,7 +70,6 @@ def parse_response(response, date, time):
             total_dist = 0.0
             num_transfers = 0
             initial_wait_time = 0.0
-            print("Too close")  
     else:
         plan = xml.find('plan')
         for itineraries in plan.findall('itineraries'):
