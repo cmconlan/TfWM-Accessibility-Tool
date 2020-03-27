@@ -71,6 +71,7 @@ def get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time) -> 
         'transit_time': [transit_time],
         'walk_dist': [walk_dist],
         'transit_dist': [transit_dist],
+        'total_dist': [total_dist],
         'num_transfers': [num_transfers],
         'fare': [fare]
     }
@@ -105,7 +106,7 @@ def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
             if row_counter % 1000 == 0:
                 print(f'Process {process_id} has completed {row_counter} rows. {(row_counter/limit) * 100}% done')
     
-    print(f'{process_id} has completed its chunk. Saved to resuts/results_{process_id}.csv')
+    print(f'{process_id} has completed its chunk. Saved to {output_file}')
 
 
 def split_trips(input_file: str, output_dir: str) -> None:
@@ -150,7 +151,7 @@ if __name__ == '__main__':
     settings.load()
     ROOT_FOLDER = settings.get_root_dir()
 
-    input_csv_name = os.path.join(ROOT_FOLDER, 'data/otp_trips.csv')
+    input_csv_name = os.path.join(ROOT_FOLDER, 'data/otp_trips_test.csv')
     output_dir = os.path.join(ROOT_FOLDER, 'results/')
 
     otp_data = split_trips(input_csv_name, output_dir)
