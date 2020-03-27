@@ -31,6 +31,7 @@
                         {
                           "type": "Feature",
                           "properties": {
+                            "id": 1,
                             "stroke": "#555555",
                             "stroke-width": 2,
                             "stroke-opacity": 1,
@@ -154,10 +155,10 @@
           }
         },
         "operationId": "get-output-areas",
-        "description": "Index all output areas in GeoJSON format"
+        "description": "Index all output areas in GeoJSON format. Note the additional id in the properties of each feature."
       }
     },
-    "/metrics": {
+    "/accessibility-metrics": {
       "get": {
         "summary": "Your GET endpoint",
         "tags": [],
@@ -195,46 +196,6 @@
         "parameters": [
           {
             "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "description": "Minimum age demographic",
-            "name": "demographic-age-min"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "demographic-age-max",
-            "description": "Maximum age demographic"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "demographic-ethnicity",
-            "description": "Array of ethnicities"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "demographic-employment",
-            "description": "Array of employment statuses"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "demographic-disability",
-            "description": "Array of disability statuses"
-          },
-          {
-            "schema": {
               "type": "string"
             },
             "in": "query",
@@ -244,14 +205,6 @@
           {
             "schema": {
               "type": "array"
-            },
-            "in": "query",
-            "name": "geographic-area",
-            "description": "The geographic areas to use"
-          },
-          {
-            "schema": {
-              "type": "string"
             },
             "in": "query",
             "name": "time-strata",
@@ -266,9 +219,10 @@
             "description": "Points of interest to use"
           }
         ]
-      }
+      },
+      "parameters": []
     },
-    "/meta/ethnicity": {
+    "/meta/demographic": {
       "get": {
         "summary": "Your GET endpoint",
         "tags": [],
@@ -287,16 +241,16 @@
                   "Example 1": {
                     "value": [
                       {
-                        "key": "vulcan",
-                        "value": "Vulcan"
+                        "key": "elderly",
+                        "value": "Elderly"
                       },
                       {
-                        "key": "andorian",
-                        "value": "Andorian"
+                        "key": "disabled",
+                        "value": "Disabled"
                       },
                       {
-                        "key": "klingon",
-                        "value": "Klingon"
+                        "key": "youth",
+                        "value": "Youth"
                       }
                     ]
                   }
@@ -306,90 +260,9 @@
           }
         },
         "operationId": "get-meta-ethnicity",
-        "description": "Index all ethnicities known by the system"
-      }
-    },
-    "/meta/employment-status": {
-      "get": {
-        "summary": "Your GET endpoint",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Key-Value-Pair"
-                  }
-                },
-                "examples": {
-                  "Example": {
-                    "value": [
-                      {
-                        "key": "employed",
-                        "value": "Employed"
-                      },
-                      {
-                        "key": "self-employed",
-                        "value": "Self Employed"
-                      },
-                      {
-                        "key": "company-director",
-                        "value": "Company Director"
-                      },
-                      {
-                        "key": "unemployed",
-                        "value": "Unemployed"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-meta-employment-status",
-        "description": "Index all employment statuses known by the system"
-      }
-    },
-    "/meta/disability-status": {
-      "get": {
-        "summary": "Your GET endpoint",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Key-Value-Pair"
-                  }
-                },
-                "examples": {
-                  "Example": {
-                    "value": [
-                      {
-                        "key": "non-disabled",
-                        "value": "Non Disabled"
-                      },
-                      {
-                        "key": "disabled",
-                        "value": "Disabled"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-meta-disability-status",
-        "description": "Index all disability statuses known by the system"
-      }
+        "description": "Index all demographics known by the system"
+      },
+      "parameters": []
     },
     "/meta/accessibility-metric": {
       "get": {
@@ -422,43 +295,6 @@
         },
         "operationId": "get-meta-accessibility-metric",
         "description": "Index all accessibility metrics known by the system"
-      }
-    },
-    "/meta/geographic-area": {
-      "get": {
-        "summary": "Your GET endpoint",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Key-Value-Pair"
-                  }
-                },
-                "examples": {
-                  "Example": {
-                    "value": [
-                      {
-                        "key": "birmingham",
-                        "value": "Birmingham"
-                      },
-                      {
-                        "key": "coventry",
-                        "value": "Coventry"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-meta-geographic-area",
-        "description": "Index all geographic areas the system has data for"
       }
     },
     "/meta/time-strata": {
@@ -575,6 +411,66 @@
         },
         "operationId": "get-meta-population-metric",
         "description": "Index all population metrics known by the system"
+      }
+    },
+    "/population-metrics": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Metric"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "output_area_id": 1,
+                        "metric": 100
+                      },
+                      {
+                        "output_area_id": 2,
+                        "metric": 50
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-population-metrics",
+        "description": "Get metrics given a number of input parameters. If an input parameter is not included, it is to be assumed that no filter applies.\nMany parameters will be supplied with parameters from /meta endpoints. In this case, parameters will be passed through in kebab-case, but displayed to the user in Title Case.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "demographic-group",
+            "description": "The demographic groups to use"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "population-metric",
+            "description": "The population metric to use"
+          }
+        ]
+      }
+    },
+    "/meta/ethnicity": {
+      "get": {
+        "summary": ""
       }
     }
   },
@@ -835,14 +731,14 @@
             "type": "number",
             "description": "ID of the output area this metric applies to"
           },
-          "accessibility": {
+          "metric": {
             "type": "number",
             "description": "Accessibility metric for this output area"
           }
         },
         "required": [
           "output_area_id",
-          "accessibility"
+          "metric"
         ]
       },
       "Key-Value-Pair": {
