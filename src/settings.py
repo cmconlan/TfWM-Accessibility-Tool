@@ -2,7 +2,7 @@ from dotenv import load_dotenv, find_dotenv
 import os
 
 def load():
-    load_dotenv(find_dotenv())
+    load_dotenv(find_dotenv(raise_error_if_not_found=True))
 
 def get_mariadb():
     MARIADB_HOST = os.environ['MARIADB_HOST']
