@@ -1,5 +1,4 @@
 from app import app
-from app import engine
 from sqlalchemy import text
 
 
@@ -24,7 +23,7 @@ def get_poi_type():
 
 
 @app.route("/meta/population-metric")
-def get_poi_type():
+def get_population_metric():
     return "[]"
 
 
