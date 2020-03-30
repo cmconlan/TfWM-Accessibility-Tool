@@ -2,7 +2,10 @@ from dotenv import load_dotenv, find_dotenv
 import os
 
 def load():
-    load_dotenv(find_dotenv(raise_error_if_not_found=True))
+    # DotEnv starts searching at / for some reason, therefore need to keep 
+    # .env relative to settings.py
+    # TODO: Fix
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 def get_mariadb():
     MARIADB_HOST = os.environ['MARIADB_HOST']
