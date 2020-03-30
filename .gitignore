@@ -4,3 +4,4 @@ data/*
 results/*
 venv
 *.pyc
+src/www/.env
