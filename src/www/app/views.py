@@ -3,40 +3,13 @@ from app import engine
 from sqlalchemy import text
 
 
-@app.route("/metrics")
+@app.route("/accessibility-metrics")
 def get_metrics():
-    return "/metrics"
-
-
-@app.route("/meta/ethnicity")
-def get_meta_ethnicity(): 
-    query = text(
-        """SELECT column_name FROM information_schema.columns 
-        WHERE column_name LIKE 'eth%'"""
-    )
-    with engine.connect() as connection:
-        ethnicities = connection.execute(query)
-    
-    return "[]"
-
-
-@app.route("/meta/employment-status")
-def get_meta_employment_status():
-    return "[]"
-
-
-@app.route("/meta/disability-status")
-def get_meta_disability_status():
     return "[]"
 
 
 @app.route("/meta/accessibility-metric")
 def get_accessibility_metric():
-    return "[]"
-
-
-@app.route("/meta/geographic-area")
-def get_geographic_area():
     return "[]"
 
 
@@ -47,4 +20,25 @@ def get_time_strata():
 
 @app.route("/meta/point-of-interest-type")
 def get_poi_type():
+    return "[]"
+
+
+@app.route("/meta/population-metric")
+def get_poi_type():
+    return "[]"
+
+
+@app.route("/meta/demographic")
+def get_meta_demographic(): 
+    return "[]"
+
+
+@app.route("/output-areas")
+def get_output_areas():
+    ## SELECT oa_id from oa;
+    return "[]"
+
+
+@app.route("/population-metrics")
+def get_population_metrics():
     return "[]"
