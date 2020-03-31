@@ -1,17 +1,24 @@
 from app import app, db
-from flask import jsonify
+from flask import jsonify, request, make_response
 from sqlalchemy import text
 import os
 import json
 import re
 
 
-def execute_query(sql_string):
-    query = text(sql_string)
-    return db.engine.execute(query)
+def execute_query(sql_string, args=None):
+    if args:
+        return db.engine.execute(sql_string, *args)
+    else:
+        return db.engine.execute(sql_string)
 
 
 def get_key_value_pairs(db_results):
+    
+    def title_case(string):
+        first_char = string[0]
+        return '_' not in string and first_char == first_char.upper()
+    
     pairs = []
     for (value,) in db_results:
         if not title_case(value):
@@ -25,11 +32,8 @@ def key_value_pair(key, value):
     return { 'key': key, 'value': value } 
 
 
-def title_case(string):
-    first_char = string[0]
-    return '_' not in string and first_char == first_char.upper()
-
-
+# Shamelessly stolen from
+# https://medium.com/@d_dchris/10-methods-to-solve-the-longest-common-prefix-problem-using-python-leetcode-14-a87bb3eb0f3a
 def find_prefix(strs):
     longest_pre = ""
     if not strs:
@@ -61,12 +65,38 @@ def humanise(string):
     return return_string.strip()
 
 
-    
-
-
 def get_json(db_results):
     key_value_pairs = get_key_value_pairs(db_results)
     return jsonify(key_value_pairs)
+
+
+def get_population_density(demographic_groups):
+    if not demographic_groups:
+        where_clause = ''
+    else:
+        where_clause = f'WHERE population IN {construct_where_clause_args(len(demographic_groups))}'
+    query = (f"SELECT oa_id, sum(count) AS pop_count "
+            f"FROM populations {where_clause} "
+            f"GROUP BY oa_id "
+            f"ORDER BY pop_count DESC")
+    pairs = []
+    args = [(index+1, value) for index, value in enumerate(demographic_groups)]
+    for (oa_id, pop_count) in execute_query(query, demographic_groups):
+        pairs.append(get_metric(oa_id, pop_count))
+    return jsonify(pairs)
+
+
+def construct_where_clause_args(num_args):
+    if num_args == 0:
+        return ''
+    elif num_args == 1:
+        return '(?)'
+    else:
+        return str(tuple('?' for i in range(num_args))).replace("'", "")
+
+
+def get_metric(oa_id, metric_value):
+    return {'output_area_id': oa_id, 'metric': metric_value}
 
 
 @app.route("/meta/accessibility-metric")
@@ -115,11 +145,39 @@ def get_output_areas():
         return json_file.read()
 
 
-@app.route("/population-metrics")
+@app.route("/population-metrics", methods=['GET'])
 def get_population_metrics():
-    return "[]"
+    metric = request.args.get('population-metric', 'population_density')
+    demographic_groups = request.args.getlist('demographic-group')
+    if metric == 'population_density':
+        return get_population_density(demographic_groups)
+    elif metric == 'at-risk_score':
+        pass #TODO return at-risk score
+    else:
+        return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-@app.route("/accessibility-metrics")
+@app.route("/accessibility-metrics", methods=['GET'])
 def get_metrics():
+    access_metric = request.args.get('accessibiltiy-metric', 'sum_gen_cost')
+    poi_types = request.args.get('point-of-interest-types')
+    time_strata = request.args.get('time-strata')
+    where_clause = ''
+    if poi_types or time_strata:
+        where_clause = 'WHERE '
+        poi_str = ''
+        strata_str = ''
+        if poi_types:
+            poi_str = 'poi_type IN ' + construct_where_clause_args(poi_types)
+        if time_strata:
+            strata_str = 'stratum IN ' + construct_where_clause_args(time_strata)
+
+        if poi_str and strata_str:
+            where_clause += f'{poi_str} AND {strata_str}'
+        else:
+            where_clause += poi_str + strata_str
+    
+    query = (f"SELECT oa_id, sum(:metric) / sum(num_trips) "
+            f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
+    execute_query(query, metric=access_metric)
     return "[]"
