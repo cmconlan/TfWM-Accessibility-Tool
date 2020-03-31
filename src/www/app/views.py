@@ -180,4 +180,5 @@ def get_metrics():
     query = (f"SELECT oa_id, sum(:metric) / sum(num_trips) "
             f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
     execute_query(query, metric=access_metric)
+    # TODO finish
     return "[]"
