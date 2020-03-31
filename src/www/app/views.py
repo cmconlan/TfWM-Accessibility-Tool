@@ -1,6 +1,6 @@
 from app import app
-from sqlalchemy import text
-
+from flask import jsonify
+import os
 
 @app.route("/accessibility-metrics")
 def get_metrics():
@@ -34,8 +34,9 @@ def get_meta_demographic():
 
 @app.route("/output-areas")
 def get_output_areas():
-    ## SELECT oa_id from oa;
-    return "[]"
+    file_dir = os.path.dirname(__file__)
+    with open(os.path.join(file_dir, 'geo_simp.json'), 'r') as json_file:
+        return json_file.read()
 
 
 @app.route("/population-metrics")
