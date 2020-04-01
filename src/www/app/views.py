@@ -7,7 +7,6 @@ import re
 
 
 def execute_query(sql_string, args=None):
-    print(sql_string, args)
     if args:
         return db.engine.execute(sql_string, *args)
     else:
@@ -89,10 +88,8 @@ def population_density(demographic_groups):
             f"GROUP BY oa_id "
             f"ORDER BY pop_count DESC")
     pairs = []
-    args = [(index+1, value) for index, value in enumerate(demographic_groups)]
-    for (oa_id, pop_count) in execute_query(query, demographic_groups):
-        pairs.append(get_metric(oa_id, pop_count))
-    return pairs
+    results = execute_query(query, demographic_groups)
+    return get_metric(results)
 
 
 def calculate_metric(access_metric, poi_types, time_strata):
@@ -111,22 +108,17 @@ def calculate_metric(access_metric, poi_types, time_strata):
         else:
             where_clause += poi_str + strata_str
     
-    query = (f"SELECT oa_id, sum({access_metric}) / sum(num_trips) "
+    query = (f"SELECT oa_id, sum(sum_{access_metric}) / sum(num_trips) "
             f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
-    args = []
-    for poi in poi_types:
-        args.append(poi)
-    for stratum in time_strata:
-        args.append(stratum)
+    args = poi_types + time_strata
 
     try:
         results = execute_query(query, args)
     except exc.SQLAlchemyError as err:
         print(err)
-        return [{'error': 'Not found'}]
+        return {'error': 'Not found'}
 
-    metrics = [get_metric(oa_id, metric) for (oa_id, metric) in results]
-    return metrics
+    return get_metric(results)
 
 def construct_where_clause_args(args):
     num_args = len(args)
@@ -138,8 +130,8 @@ def construct_where_clause_args(args):
         return str(tuple('?' for i in range(num_args))).replace("'", "")
 
 
-def get_metric(oa_id, metric_value):
-    return {'output_area_id': oa_id, 'metric': metric_value}
+def get_metric(results):
+    return {oa_id: metric for (oa_id, metric) in results}
 
 
 @app.route("/meta/accessibility-metric")
@@ -183,7 +175,7 @@ def get_output_areas():
     # Using a relative path e.g ./geo_simp.json results in an empty file
     file_dir = os.path.dirname(__file__)
     with open(os.path.join(file_dir, 'geo_simp.json'), 'r') as json_file:
-        return json_file.read()
+        return jsonify(json.load(json_file))
 
 
 @app.route("/population-metrics", methods=['GET'])
@@ -193,19 +185,19 @@ def population_metrics():
     if metric == 'population_density':
         density = population_density(demographic_groups)
         return jsonify(density)
-    elif metric == 'at-risk_score':
-        pass #TODO return at-risk score
+    # elif metric == 'at-risk_score':
+    #     #TODO
     else:
         return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @app.route("/accessibility-metrics", methods=['GET'])
 def accessibility_metrics():
-    access_metric = request.args.get('accessibility-metric', 'sum_gen_cost')
+    access_metric = request.args.get('accessibility-metric', 'gen_cost')
     poi_types = request.args.getlist('point-of-interest-types')
     time_strata = request.args.getlist('time-strata')
     access_metrics = calculate_metric(access_metric, poi_types, time_strata)
-    if {'error': 'Not found'} in access_metrics:
-        return make_response({'error': 'Not found'}, 404)
+    if 'error' in access_metrics:
+        return make_response(access_metrics, 404)
     else:
         return jsonify(access_metrics)
