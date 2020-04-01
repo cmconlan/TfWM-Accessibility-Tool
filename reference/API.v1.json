@@ -189,6 +189,24 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "The access metric does not exist in the database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {}
+                }
+              }
+            }
           }
         },
         "operationId": "get-metrics",
@@ -407,6 +425,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "The population metric is not known to the system"
           }
         },
         "operationId": "get-meta-population-metric",
@@ -451,6 +472,14 @@
         "parameters": [
           {
             "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "population-metric",
+            "description": "population metric to use"
+          },
+          {
+            "schema": {
               "type": "array"
             },
             "in": "query",
@@ -459,18 +488,21 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "array"
             },
             "in": "query",
-            "name": "population-metric",
-            "description": "The population metric to use"
+            "name": "point-of-interest-types",
+            "description": "If using at-risk score as population metric, this can be supplied"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "time-strata",
+            "description": "If using at-risk score as population metric, this can be supplied"
           }
         ]
-      }
-    },
-    "/meta/ethnicity": {
-      "get": {
-        "summary": ""
       }
     }
   },
