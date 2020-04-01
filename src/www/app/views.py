@@ -6,134 +6,6 @@ import json
 import re
 
 
-def execute_query(sql_string, args=None):
-    if args:
-        return db.engine.execute(sql_string, *args)
-    else:
-        return db.engine.execute(sql_string)
-
-
-def get_key_value_pairs(db_results):
-    
-    def title_case(string):
-        first_char = string[0]
-        return '_' not in string and first_char == first_char.upper()
-
-    is_list = type(db_results) is list
-    pairs = []
-    for value in db_results:
-        if not is_list:
-            # We either expect RowProxy from SQLAlchemy or a list of strings
-            (value,) = value
-
-        if not title_case(value):
-            pairs.append(key_value_pair(value, humanise(value)))
-        else:
-            pairs.append(key_value_pair(value, value))
-    return pairs
-
-
-def key_value_pair(key, value):
-    return { 'key': key, 'value': value } 
-
-
-# Shamelessly stolen from
-# https://medium.com/@d_dchris/10-methods-to-solve-the-longest-common-prefix-problem-using-python-leetcode-14-a87bb3eb0f3a
-def find_prefix(strs):
-    longest_pre = ""
-    if not strs:
-        return longest_pre
-    shortest_str = min(strs, key=len)
-    for i in range(len(shortest_str)):
-        if all([x.startswith(shortest_str[:i+1]) for x in strs]):
-            longest_pre = shortest_str[:i+1]
-        else:
-            break
-    return longest_pre
-
-
-def remove_common_prefix(strings):
-    prefix = find_prefix(strings)
-    return [string.replace(prefix, '') for string in strings]
-        
-
-
-def humanise(string):
-    string_list = string.split('_')
-    return_string = ''
-    for substring in string_list:
-        if substring in ['am', 'pm', 'uk']:
-            return_string += substring.upper()
-        else:
-            if len(substring) > 1:
-                return_string += substring[0].upper() + substring[1:]
-            else:
-                return_string += substring.upper()
-        return_string += ' '
-    return return_string.strip()
-
-
-def get_json(db_results):
-    key_value_pairs = get_key_value_pairs(db_results)
-    return jsonify(key_value_pairs)
-
-
-def population_density(demographic_groups):
-    if not demographic_groups:
-        where_clause = ''
-    else:
-        where_clause = f'WHERE population IN {construct_where_clause_args(demographic_groups)}'
-    query = (f"SELECT oa_id, sum(count) AS pop_count "
-            f"FROM populations {where_clause} "
-            f"GROUP BY oa_id "
-            f"ORDER BY pop_count DESC")
-    pairs = []
-    results = execute_query(query, demographic_groups)
-    return get_metric(results)
-
-
-def calculate_metric(access_metric, poi_types, time_strata):
-    where_clause = ''
-    if poi_types or time_strata:
-        where_clause = 'WHERE '
-        poi_str = ''
-        strata_str = ''
-        if poi_types:
-            poi_str = 'poi_type IN ' + construct_where_clause_args(poi_types)
-        if time_strata:
-            strata_str = 'stratum IN ' + construct_where_clause_args(time_strata)
-
-        if poi_str and strata_str:
-            where_clause += f'{poi_str} AND {strata_str}'
-        else:
-            where_clause += poi_str + strata_str
-    
-    query = (f"SELECT oa_id, sum(sum_{access_metric}) / sum(num_trips) "
-            f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
-    args = poi_types + time_strata
-
-    try:
-        results = execute_query(query, args)
-    except exc.SQLAlchemyError as err:
-        print(err)
-        return {'error': 'Not found'}
-
-    return get_metric(results)
-
-def construct_where_clause_args(args):
-    num_args = len(args)
-    if num_args == 0:
-        return ''
-    elif num_args == 1:
-        return '(?)'
-    else:
-        return str(tuple('?' for i in range(num_args))).replace("'", "")
-
-
-def get_metric(results):
-    return {oa_id: metric for (oa_id, metric) in results}
-
-
 @app.route("/meta/accessibility-metric")
 def get_accessibility_metric():
     results = execute_query("SELECT sql FROM sqlite_master WHERE tbl_name = 'otp_results_summary' AND type = 'table'")
@@ -196,8 +68,143 @@ def accessibility_metrics():
     access_metric = request.args.get('accessibility-metric', 'gen_cost')
     poi_types = request.args.getlist('point-of-interest-types')
     time_strata = request.args.getlist('time-strata')
-    access_metrics = calculate_metric(access_metric, poi_types, time_strata)
+    access_metrics = calculate_access_metric(access_metric, poi_types, time_strata)
     if 'error' in access_metrics:
         return make_response(access_metrics, 404)
     else:
         return jsonify(access_metrics)
+
+
+def execute_query(sql_string, args=None):
+    if args:
+        return db.engine.execute(sql_string, *args)
+    else:
+        return db.engine.execute(sql_string)
+
+
+def get_json(db_results):
+    key_value_pairs = get_key_value_pairs(db_results)
+    return jsonify(key_value_pairs)
+
+
+def get_key_value_pairs(db_results):
+    
+    def title_case(string):
+        first_char = string[0]
+        return '_' not in string and first_char == first_char.upper()
+
+    is_list = type(db_results) is list
+    pairs = []
+    for value in db_results:
+        if not is_list:
+            # We either expect RowProxy from SQLAlchemy or a list of strings
+            (value,) = value
+
+        if not title_case(value):
+            pairs.append(key_value_pair(value, humanise(value)))
+        else:
+            pairs.append(key_value_pair(value, value))
+    return pairs
+
+
+def key_value_pair(key, value):
+    return { 'key': key, 'value': value } 
+
+
+def humanise(string):
+    string_list = string.split('_')
+    return_string = ''
+    for substring in string_list:
+        if substring in ['am', 'pm', 'uk']:
+            return_string += substring.upper()
+        else:
+            if len(substring) > 1:
+                return_string += substring[0].upper() + substring[1:]
+            else:
+                return_string += substring.upper()
+        return_string += ' '
+    return return_string.strip()
+
+
+def remove_common_prefix(strings):
+    prefix = find_prefix(strings)
+    return [string.replace(prefix, '') for string in strings]
+
+
+# Shamelessly stolen from
+# https://medium.com/@d_dchris/10-methods-to-solve-the-longest-common-prefix-problem-using-python-leetcode-14-a87bb3eb0f3a
+def find_prefix(strs):
+    longest_pre = ""
+    if not strs:
+        return longest_pre
+    shortest_str = min(strs, key=len)
+    for i in range(len(shortest_str)):
+        if all([x.startswith(shortest_str[:i+1]) for x in strs]):
+            longest_pre = shortest_str[:i+1]
+        else:
+            break
+    return longest_pre
+
+
+def population_density(demographic_groups):
+    if not demographic_groups:
+        where_clause = ''
+    else:
+        where_clause = f'WHERE population IN {construct_where_clause_args(demographic_groups)}'
+    query = (f"SELECT oa_id, sum(count) AS pop_count "
+            f"FROM populations {where_clause} "
+            f"GROUP BY oa_id "
+            f"ORDER BY pop_count DESC")
+    pairs = []
+    results = execute_query(query, demographic_groups)
+    return get_metric(results)
+
+
+def calculate_access_metric(access_metric, poi_types, time_strata):
+    where_clause = ''
+    if poi_types or time_strata:
+        where_clause = 'WHERE '
+        poi_str = ''
+        strata_str = ''
+        if poi_types:
+            poi_str = 'poi_type IN ' + construct_where_clause_args(poi_types)
+        if time_strata:
+            strata_str = 'stratum IN ' + construct_where_clause_args(time_strata)
+
+        if poi_str and strata_str:
+            where_clause += f'{poi_str} AND {strata_str}'
+        else:
+            where_clause += poi_str + strata_str
+    
+    query = (f"SELECT oa_id, sum(sum_{access_metric}) / sum(num_trips) "
+            f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
+    args = poi_types + time_strata
+
+    try:
+        results = execute_query(query, args)
+    except exc.SQLAlchemyError as err:
+        print(err)
+        return {'error': 'Not found'}
+
+    return get_metric(results)
+
+def construct_where_clause_args(args):
+    if type(args) is int
+        num_args = args
+    else:
+        try:
+            num_args = len(args)
+        except TypeError:
+            raise TypeError("""Supplied object cannot be used to determine number of bind parameters\n
+                Value {} is of type {} and has no len()""".format(args, type(args)))
+
+    if num_args == 0:
+        return ''
+    elif num_args == 1:
+        return '(?)'
+    else:
+        return str(tuple('?' for i in range(num_args))).replace("'", "")
+
+
+def get_metric(results):
+    return {oa_id: metric for (oa_id, metric) in results}
