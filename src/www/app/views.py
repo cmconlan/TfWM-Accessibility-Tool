@@ -56,7 +56,7 @@ def population_metrics():
     demographic_groups = request.args.getlist('demographic-group')
     if metric == 'population_density':
         density = population_density(demographic_groups)
-        return jsonify(density)
+        return jsonify(add_rank(density))
     # elif metric == 'at-risk_score':
     #     #TODO
     else:
@@ -72,7 +72,7 @@ def accessibility_metrics():
     if 'error' in access_metrics:
         return make_response(access_metrics, 404)
     else:
-        return jsonify(access_metrics)
+        return jsonify(add_rank(access_metrics))
 
 
 def execute_query(sql_string, args=None):
@@ -157,7 +157,8 @@ def population_density(demographic_groups):
             f"ORDER BY pop_count DESC")
     pairs = []
     results = execute_query(query, demographic_groups)
-    return get_metric(results)
+
+    return get_metrics(results)
 
 
 def calculate_access_metric(access_metric, poi_types, time_strata):
@@ -186,10 +187,10 @@ def calculate_access_metric(access_metric, poi_types, time_strata):
         print(err)
         return {'error': 'Not found'}
 
-    return get_metric(results)
+    return get_metrics(results)
 
 def construct_where_clause_args(args):
-    if type(args) is int
+    if type(args) is int:
         num_args = args
     else:
         try:
@@ -206,5 +207,18 @@ def construct_where_clause_args(args):
         return str(tuple('?' for i in range(num_args))).replace("'", "")
 
 
-def get_metric(results):
+def get_metrics(results):
     return {oa_id: metric for (oa_id, metric) in results}
+
+def add_rank(metrics):
+    # Our version fo SQLite doesn't have window functions, so cant use rank()
+    for index, (oa_id, value) in enumerate(sort_by_value(metrics)):
+        metrics[oa_id] = {'metric': value, 'rank': index+1}
+    return metrics
+
+
+def sort_by_value(input_dict, reverse=False):
+    if type(input_dict) is not dict:
+        raise TypeError('Cannot sort a non-dict type by value')
+
+    return sorted(input_dict.items(), key=lambda item: item[1], reverse=reverse)
