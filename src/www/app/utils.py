@@ -244,6 +244,9 @@ def construct_in_clause_args(args):
 
     Returns:
     str: a string containing n bind parameters, where n is equal to args or len(args)
+
+    Raises:
+    TypeError: Excpetion raised if the supplied collection does not have a len()
     """
     if type(args) is int:
         num_args = args
@@ -304,7 +307,10 @@ def sort_by_value(input_dict, reverse=False):
 
     Returns:
     iterator: An iterator that returns (key, value) tuples of the input dictionary
-              in order of the values
+              in order of the values.
+
+    Raises:
+    TypeError: Exception raised of the value is not a dictionary
     """
     if type(input_dict) is not dict:
         raise TypeError('Cannot sort a non-dict type by value')
