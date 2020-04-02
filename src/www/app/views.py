@@ -57,8 +57,11 @@ def population_metrics():
     if metric == 'population_density':
         density = population_density(demographic_groups)
         return jsonify(add_rank(density))
-    # elif metric == 'at-risk_score':
-    #     #TODO
+    elif metric == 'at-risk_score':
+        poi_types = request.args.getlist('point-of-interest-types')
+        time_strata = request.args.getlist('time-strata')
+        at_risk_score = at_risk_scores(demographic_groups, poi_types, time_strata)
+        return jsonify(add_rank(at_risk_score))
     else:
         return make_response(jsonify({'error': 'Not found'}), 404)
 
@@ -161,6 +164,21 @@ def population_density(demographic_groups):
     return get_metrics(results)
 
 
+def at_risk_scores(demographics, poi_types, time_strata):
+    density = population_density(demographics)
+    generalised_score = calculate_access_metric('gen_cost', poi_types, time_strata)
+    oa_total = len(density)
+    oa_count = 0
+    metrics = {}    
+    for (oa_id, pop_count) in density.items():
+        oa_count += 1
+        if oa_count <= oa_total // 2:
+            metrics[oa_id] = generalised_score[oa_id] / pop_count 
+        else:
+            break
+    return metrics
+
+
 def calculate_access_metric(access_metric, poi_types, time_strata):
     where_clause = ''
     if poi_types or time_strata:
@@ -189,6 +207,7 @@ def calculate_access_metric(access_metric, poi_types, time_strata):
 
     return get_metrics(results)
 
+
 def construct_where_clause_args(args):
     if type(args) is int:
         num_args = args
@@ -209,6 +228,7 @@ def construct_where_clause_args(args):
 
 def get_metrics(results):
     return {oa_id: metric for (oa_id, metric) in results}
+
 
 def add_rank(metrics):
     # Our version fo SQLite doesn't have window functions, so cant use rank()
