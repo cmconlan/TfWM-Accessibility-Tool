@@ -8,7 +8,8 @@ from app.utils import  population_density, at_risk_scores, get_json, add_rank
 
 @app.route("/meta/accessibility-metric")
 def get_accessibility_metric():
-    results = execute_query("SELECT sql FROM sqlite_master WHERE tbl_name = 'otp_results_summary' AND type = 'table'")
+    results = execute_query("""SELECT sql FROM sqlite_master 
+        WHERE tbl_name = 'otp_results_summary' AND type = 'table'""")
     result = str(results.fetchall())
     # Match strings of the form sum_x_y
     metrics = remove_common_prefix(re.findall('sum_[a-z_]*', result))
@@ -68,7 +69,7 @@ def population_metrics():
 
 @app.route("/accessibility-metrics", methods=['GET'])
 def accessibility_metrics():
-    access_metric = request.args.get('accessibility-metric', 'gen_cost')
+    access_metric = request.args.get('accessibility-metric', 'generalised_cost')
     poi_types = request.args.getlist('point-of-interest-types')
     time_strata = request.args.getlist('time-strata')
     access_metrics = calculate_access_metric(access_metric, poi_types, time_strata)

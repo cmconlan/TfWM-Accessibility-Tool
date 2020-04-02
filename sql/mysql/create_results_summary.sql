@@ -8,7 +8,7 @@ SELECT
     sum(total_time) as sum_journey_time,
     sum(walk_dist) as sum_walking_dist,
     sum(fare) as sum_fare,
-    sum(generalised_cost) as sum_gen_cost
+    sum(generalised_cost) as sum_generalised_cost
 FROM 
     (
         SELECT 
