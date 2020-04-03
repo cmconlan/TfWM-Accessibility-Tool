@@ -67,6 +67,25 @@ def test_population_density(client):
             pytest.fail()
 
 
+def test_accessibility_metrics(client):
+    access_metrics = ['journey_time', 'walking_distance', 'fare', 'generalised_cost']
+    time_strata_seq = get_subsequences(fetch_expected("SELECT DISTINCT stratum FROM otp_results_summary"))
+    poi_types_seq = get_subsequences(fetch_expected("SELECT DISTINCT type FROM poi"))
+    oa_ids = get_oa_ids()
+    for metric in access_metrics:
+        base_url = '/accessibility-metrics?' + 'accessibility-metric=' + metric
+        for poi_types in poi_types_seq:
+            for strata in time_strata_seq:
+                query_url = construct_query_params(base_url, 'point-of-interest-types', poi_types)
+                query_url = construct_query_params(query_url, 'time-strata', strata)
+                print(query_url)
+                metrics = utils.calculate_access_metric(metric, poi_types, strata)
+                response = json.loads(client.get(query_url).data)
+                assert contains_all_output_areas(oa_ids, response)
+                if not metrics_match_expected(response, metrics):
+                    print(query_url)
+                    pytest.fail()
+
 def verify_response_against_query(response, sql_query):
     query_results = fetch_expected(sql_query)
 
