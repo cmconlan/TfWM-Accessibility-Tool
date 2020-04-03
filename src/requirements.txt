@@ -35,7 +35,6 @@ pathtools==0.1.2
 pluggy==0.13.1
 psycopg2==2.8.4
 py==1.8.1
-pydoc-markdown==3.0.0
 PyMeeus==0.3.7
 pyparsing==2.4.6
 pytest==5.4.1
