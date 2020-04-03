@@ -1,3 +1,4 @@
+from functools import reduce
 from app import app, db
 from sqlalchemy import text, exc
 from flask import jsonify
@@ -49,10 +50,13 @@ def get_key_value_pairs(db_results):
     Returns:
     list: List of key-value pairs e.g [{'key': key, 'value': value}, ...]
     """
-    def title_case(string):
-        """Return True if the provided string is in Title Case"""
-        first_char = string[0]
-        return '_' not in string and first_char == first_char.upper()
+    def snake_case(string):
+        """Return True if the provided string is in snake_case"""
+        if string:
+            first_char = string[0]
+            return '_' in string or first_char != first_char.upper()
+        else:
+            return False
 
     is_list = type(db_results) is list
     pairs = []
@@ -61,7 +65,7 @@ def get_key_value_pairs(db_results):
         if not is_list:
             (value,) = value
 
-        if not title_case(value):
+        if snake_case(value):
             pairs.append(key_value_pair(value, humanise(value)))
         else:
             pairs.append(key_value_pair(value, value))
@@ -84,18 +88,21 @@ def humanise(string):
     Returns:
     str: Title Case form of the input string
     """
-    string_list = string.split('_')
-    return_string = ''
-    for substring in string_list:
-        if substring in ['am', 'pm', 'uk']:
-            return_string += substring.upper()
-        else:
-            if len(substring) > 1:
-                return_string += substring[0].upper() + substring[1:]
-            else:
+    if string:
+        string_list = string.split('_')
+        return_string = ''
+        for substring in string_list:
+            if substring in ['am', 'pm', 'uk']:
                 return_string += substring.upper()
-        return_string += ' '
-    return return_string.strip()
+            else:
+                if len(substring) > 1:
+                    return_string += substring[0].upper() + substring[1:]
+                else:
+                    return_string += substring.upper()
+            return_string += ' '
+        return return_string.strip()
+    else:
+        return ''
 
 
 def remove_common_prefix(strings):
@@ -108,9 +115,16 @@ def remove_common_prefix(strings):
 
     Returns:
     list: List of strings with longest common prefix removed
+
+    Raises:
+    ValueError: Exception raised if there is at least one non-string in the list
     """
-    prefix = find_prefix(strings)
-    return [string.replace(prefix, '') for string in strings]
+    all_strings = reduce(lambda x, y: x and y, map(lambda x: type(x) is str, strings))
+    if all_strings:
+        prefix = find_prefix(strings)
+        return [string.replace(prefix, '') for string in strings]
+    else:
+        raise ValueError('Cannot remove common prefix from a collection of non-strings')
 
 
 def find_prefix(strs):
@@ -249,20 +263,25 @@ def construct_in_clause_args(args):
     TypeError: Excpetion raised if the supplied collection does not have a len()
     """
     if type(args) is int:
+        if args < 0:
+            raise ValueError('Number of arguments must be non-negative')
         num_args = args
     else:
-        try:
-            num_args = len(args)
-        except TypeError:
-            raise TypeError("""Supplied object cannot be used to determine number of bind parameters\n
-                Value {} is of type {} and has no len()""".format(args, type(args)))
+        num_args = get_object_length(args)
 
     if num_args == 0:
-        return ''
+        return '()'
     elif num_args == 1:
         return '(?)'
     else:
         return str(tuple('?' for i in range(num_args))).replace("'", "")
+
+
+def get_object_length(obj):
+    try:
+        return len(obj)
+    except TypeError:
+        raise TypeError("Value {} has no len()".format(obj))
 
 
 def get_metrics(db_results):
