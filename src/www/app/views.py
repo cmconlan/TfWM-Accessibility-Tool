@@ -6,6 +6,7 @@ from flask import jsonify, request, make_response
 from app.utils import execute_query, get_key_value_pairs, remove_common_prefix, calculate_access_metric
 from app.utils import  population_density, at_risk_scores, get_json, add_rank
 
+
 @app.route("/meta/accessibility-metric")
 def get_accessibility_metric():
     results = execute_query("""SELECT sql FROM sqlite_master 
@@ -38,7 +39,7 @@ def get_population_metric():
 
 
 @app.route("/meta/demographic")
-def get_meta_demographic():
+def get_demographic():
     results = execute_query("SELECT DISTINCT population FROM populations")
     return get_json(results)
 

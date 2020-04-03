@@ -1,9 +1,10 @@
 import json
+import os
 from functools import reduce
 import pytest
-import mysql.connector as mariadb
 from app import app, db
-
+import app.utils as utils
+from config import basedir
 
 @pytest.fixture
 def client():
@@ -16,7 +17,7 @@ def client():
 def test_meta_accessibility_metrics(client):
     [create_statement] = fetch_expected("""SELECT sql FROM sqlite_master 
         WHERE tbl_name = 'otp_results_summary' AND type = 'table'""")
-
+ 
     response = client.get("/meta/accessibility-metric")
     response_list = json.loads(response.data)
     assert response_has_expected_keys(get_response_keys(response_list), create_statement)
@@ -51,6 +52,21 @@ def test_meta_population_metrics(client):
     assert response_has_expected_keys(response_keys, metrics)
 
 
+def test_population_density(client):
+    demographics = fetch_expected("SELECT DISTINCT population FROM populations")
+    demographic_subsets = get_subsequences(demographics)
+    oa_ids = get_oa_ids()
+    base_url = '/population-metrics?population-metric=population_density'
+    for subset in demographic_subsets:
+        query_url = construct_query_params(base_url,'demographic-group', subset)
+        density = utils.population_density(subset)
+        response = json.loads(client.get(query_url).data)
+        assert contains_all_output_areas(oa_ids, response)
+        if not metrics_match_expected(response, density):
+            print(query_url)
+            pytest.fail()
+
+
 def verify_response_against_query(response, sql_query):
     query_results = fetch_expected(sql_query)
 
@@ -80,6 +96,58 @@ def no_duplicates(results):
 
 
 def response_has_expected_keys(results, expected):
-    keys_in_expected = map(lambda key: key in expected, results)
-    all_keys_in_expected = reduce(lambda x, y: x and y, keys_in_expected)
-    return all_keys_in_expected
+    for key in results:
+        if key not in expected:
+            return False
+    return True
+
+
+def get_subsequences(input_list):
+    lists = []
+    for i in range(len(input_list)+1):
+        lists.append(input_list[0:i])
+    return lists
+
+
+# Use this to test all possible subsets of inputs
+# Takes a very long time however
+def get_subsets(input_list):
+    if not input_list:
+        return [[]]
+    else:
+        head, *tail = input_list
+        prev_combinations = get_subsets(tail)
+        for combination in prev_combinations:
+            if head not in combination:
+                new = combination + [head]
+                prev_combinations.append(new)
+        return prev_combinations
+
+
+def construct_query_params(base_url, name, parameters):
+    for parameter in parameters:
+        base_url += f'&{name}={parameter}'
+    return base_url
+
+
+def get_oa_ids():
+    with open(os.path.join(basedir, 'app/geo_simp.json'), 'r') as json_file:
+        geo_json = json.load(json_file)
+        oa_ids = [feature['id'] for feature in geo_json['features']]
+    return oa_ids
+
+
+def contains_all_output_areas(output_areas, metrics):
+    for oa_id in metrics:
+        if oa_id not in output_areas:
+            return False
+    return True
+    
+
+def metrics_match_expected(results, expected):
+    for oa_id in expected:
+        if results[oa_id]['metric'] != expected[oa_id]:
+            print(results[oa_id]['metric'], expected[oa_id])
+            print(oa_id, results[oa_id], expected[oa_id])
+            return False
+    return True

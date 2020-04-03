@@ -169,7 +169,6 @@ def population_density(demographic_groups):
             f"FROM populations {where_clause} "
             f"GROUP BY oa_id "
             f"ORDER BY pop_count DESC")
-    pairs = []
     results = execute_query(query, demographic_groups)
 
     return get_metrics(results)
@@ -191,7 +190,7 @@ def at_risk_scores(demographics, poi_types, time_strata):
     dict: A dictionary keyed by OA ID, with the value being the at-risk score
     """
     density = population_density(demographics)
-    generalised_score = calculate_access_metric('gen_cost', poi_types, time_strata)
+    generalised_score = calculate_access_metric('generalised_cost', poi_types, time_strata)
     oa_total = len(density)
     oa_count = 0
     metrics = {}    
