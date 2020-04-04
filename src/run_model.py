@@ -59,13 +59,11 @@ def run(mode='replace', suffix='', chunksize=10000):
     # Configure OTP query parameters and save to MODEL.trips
     model_functions.create_trips(SQL_FOLDER, suffix=suffix, engine=engine, mode=mode)
 
-    ### Run models and write results to database ###
     # Generate RESULTS.populations
     model_functions.compute_populations(SQL_FOLDER, population_dict, engine)
     # Generate RESULTS.trips
     model_functions.split_trips(host, port, num_splits, SQL_FOLDER, RESULTS_FOLDER,
                                 engine, psql_credentials, suffix=suffix, mode=mode, chunksize=chunksize)
-    # Generate VIS.map_attributes
 
     ### Generate data for visualization and save to database ###
     model_functions.compute_map_attributes(SQL_FOLDER, metrics, engine, suffix=suffix)

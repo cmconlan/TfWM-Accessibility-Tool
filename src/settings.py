@@ -4,7 +4,6 @@ import os
 def load():
     # DotEnv starts searching at / for some reason, therefore need to keep 
     # .env relative to settings.py
-    # TODO: Fix
     load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 def get_mariadb():

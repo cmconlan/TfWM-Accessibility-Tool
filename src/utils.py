@@ -1,7 +1,3 @@
-###########################
-# Commonly used functions #
-###########################
-
 import pandas as pd
 import sqlalchemy as db
 import yaml
@@ -139,9 +135,6 @@ def copy_text_to_db(src_file, dst_table, engine, mode='append', header=True, sep
 
     conn = engine.raw_connection()
     cur = conn.cursor()
-    # if mode == 'replace':
-    #    cur.execute(f"DELETE FROM {dst_table} WHERE TRUE;")
-    #    conn.commit()
     with open(src_file, 'r', encoding='ISO-8859-1') as f:
         if header:
             head = 'HEADER'
@@ -257,19 +250,6 @@ def time_range(start_time, end_time, unit='m'):
         rng.append(t.time())
         t += delta
     return rng
-
-
-# def to_datetime_from_datetime64(date):
-#     """
-#     Converts a numpy datetime64 object to a python datetime object
-#     Input:
-#       date - a np.datetime64 object
-#     Output:
-#       DATE - a python datetime object
-#     """
-#     timestamp = ((date - np.datetime64('1970-01-01T00:00:00'))
-#                  / np.timedelta64(1, 's'))
-#     return datetime.utcfromtimestamp(timestamp)
 
 
 def datetime_range(date_range, time_range):

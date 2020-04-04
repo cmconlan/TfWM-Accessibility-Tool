@@ -1,5 +1,8 @@
 # ETL and Postgres DB
-
+For the purposes of ETL, it is recommended to use Postgres as this supports PostGIS, a Postgres extension for geographical
+information structures. During development the DBMS had to switch from Postgres, to MySQL, to SQLite sure to system restrictions.
+If attempting to run this on University of Warwick systems, it is recommeded to perform the ETL process on a separate machine where
+it is possible to satisfy the prerequisites, then export the results to use in the modelling process.
 ### Prerequisites
 
 - A user account with `sudo` privileges.
@@ -9,7 +12,7 @@
 ### Setup Overview
 1. Install Postgres version 10 and setup a database.
 2. Install PostGIS.
-3. Install Python requirements.
+3. Install Python and system requirements.
 4. Setup Workspace and provide data.
 
 ### 1. Install Postgres version 10 and setup a database
@@ -127,6 +130,50 @@ postgres=# create extension postgis;
 CREATE EXTENSION
 postgres=# \q
 ```
-### 3 Install Python requirements
+### 3 Install Python and system requirements
 
-*To be continued...*
+It is recommened to use a virtualenv for the installation of the requirements. See Python documentation for [setting up a virtualenv](https://docs.python.org/3/tutorial/venv.html) for guidance.
+Clone the repository using `git clone`
+```
+git clone https://github.com/cmconlan/TfWM-Accessibility-Tool.git
+```
+`cd` to the `src` directory and intstall the requirements with `pip`
+```
+(venv) $ pip install -r requirements.txt
+```
+Installing python modules may cause errors due to missing system packages. Refer to the documentation for the python modules
+to make sure system prerequisites are met.
+If using Postgres for the ETL process, you'll also need the `osm2pgsql` package to load Open Street Map files:
+ ```
+sudo yum install osm2pgsql
+ ```
+
+### 4 Setup workspace and provide data
+#### 4.1 Conigure environment variables
+The `.env` file under the `src` directory contains system-wide variables used throughout the codebase.
+For the purposes of ETL, the following fields need to be filled in:
+Note: The settings.py file refers to database credentials with the MARIADB prefix. During development we had to switch databases
+multiple times due to IT restrictions, however using SQLAlchemy means these fields can be filled in for other DBMS.
+You may however need to change the SQLAlchemy DB URL prefix in calls to `create_connetion` to match the dirver e.g `mysql+mysqldb`, `sqlite`
+```
+# The absolute path to the top level repository directory e.g /dcs/project/transport-access-tool/TfWM-Accessibility-Tool
+ROOT_FOLDER= 
+# The database user access is done through
+MARIADB_USER=
+# If required, the database password
+MARIADB_PASSWORD=
+# The database name
+MARIADB_DB=
+# The host address of the database e.g mysql.dcs.warwick.ac.uk
+MARIADB_HOST=
+# Port the database is running on
+MARIADB_PORT=3306
+```
+#### 4.2 Provide data files
+The file `/config/base/data_files.yaml` lists the data files that you want to upload to the database from `/data`.
+
+- text_dict maps each `.txt` or `.csv` file to a table in the raw schema.
+- gis_dict maps each `.shp` file to a table in the `gis` schema.
+- osm_file gives the name of the OpenStreetMap `.pbf` file that is uploaded to the `raw schema`.
+
+If you upload any new data sources to the `/data` folder, you also need to add the file (and map it to a corresponding table name, if applicable) to /config/base/data_files.yaml in order for these sources to be added to the database.

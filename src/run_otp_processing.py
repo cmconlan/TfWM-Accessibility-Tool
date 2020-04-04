@@ -41,10 +41,6 @@ def get_csv_section(reader, offset, limit) -> object:
     return itertools.islice(reader, offset, offset+limit)
 
 
-def calculate_fare():
-    pass #TODO
-
-
 def get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time) -> dict:
     response = otp.request_otp(host_url, oa_lat, poi_lat, oa_lon, poi_lon, date, time)
     (
@@ -86,10 +82,8 @@ def dict_to_df(data_dict, index):
 
 
 def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
-
     output_file = os.path.join(output_dir, f'results_{process_id}.csv')
     print(f"{process_id} on {host_url} for offset {offset} limit {limit} saving to {output_file}")
-
 
     row_counter = 0
     with open(input_file, 'r') as csv_file:

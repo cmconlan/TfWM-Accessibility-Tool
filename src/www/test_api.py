@@ -86,6 +86,7 @@ def test_accessibility_metrics(client):
                     print(query_url)
                     pytest.fail()
 
+
 def verify_response_against_query(response, sql_query):
     query_results = fetch_expected(sql_query)
 
