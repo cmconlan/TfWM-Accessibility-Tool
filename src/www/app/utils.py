@@ -193,12 +193,12 @@ def at_risk_scores(demographics, poi_types, time_strata):
     generalised_score = calculate_access_metric('generalised_cost', poi_types, time_strata)
     oa_total = len(density)
     oa_count = 0
-    metrics = {}    
-    for (oa_id, pop_count) in density.items():
-        oa_count += 1
-        # We only want at-risk score for the top 50%
+    metrics = {}
+    for (oa_id, pop_count) in sort_by_value(density, reverse=True):
+        # We only want at-risk score for the 50% most populated OAs
         if oa_count <= oa_total // 2:
             metrics[oa_id] = generalised_score[oa_id] / pop_count 
+            oa_count += 1
         else:
             break
     return metrics
