@@ -94,6 +94,7 @@ def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
             
             results = get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time)
             results['trip_id'] = trip_id
+            # Rows are indivually appended to avoid storing many rows in memory
             dict_to_df(results, 'trip_id').to_csv(output_file, index=True, header=False, mode='a')
 
             row_counter += 1

@@ -168,6 +168,7 @@ MARIADB_DB=
 MARIADB_HOST=
 # Port the database is running on
 MARIADB_PORT=3306
+...
 ```
 #### 4.2 Provide data files
 The file `/config/base/data_files.yaml` lists the data files that you want to upload to the database from `/data`.
