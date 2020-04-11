@@ -189,19 +189,24 @@ def at_risk_scores(demographics, poi_types, time_strata):
     Returns:
     dict: A dictionary keyed by OA ID, with the value being the at-risk score
     """
+    results = execute_query(
+        "SELECT oa_id FROM populations WHERE population = 'total' ORDER BY count DESC"
+    )
+    oa_ids_ordered_by_population = results.fetchall()
+    half_number_of_oas = len(oa_ids_ordered_by_population) // 2
     density = population_density(demographics)
     generalised_score = calculate_access_metric('generalised_cost', poi_types, time_strata)
-    oa_total = len(density)
+
     oa_count = 0
-    metrics = {}
-    for (oa_id, pop_count) in sort_by_value(density, reverse=True):
+    at_risk_score = {}
+    for (oa_id,) in oa_ids_ordered_by_population:
         # We only want at-risk score for the 50% most populated OAs
-        if oa_count <= oa_total // 2:
-            metrics[oa_id] = generalised_score[oa_id] / pop_count 
+        if oa_count <= half_number_of_oas:
+            at_risk_score[oa_id] = generalised_score[oa_id] / density[oa_id] 
             oa_count += 1
         else:
             break
-    return metrics
+    return at_risk_score
 
 
 def calculate_access_metric(access_metric, poi_types, time_strata):
