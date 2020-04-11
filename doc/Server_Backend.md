@@ -68,3 +68,6 @@ DATABASE_URL=
 # Population metrics known by the system. If adding a new metric this needs to be implemented in `views.py` under the `/population-metrics` route.
 POPULATION_METRICS=["population_density", "at-risk_score"]
 ```
+
+## Webserver API
+To see information abount endpoints implemented in views.py, open the API reference JSON found in `reference/` in [stoplight.io studio](https://stoplight.io/studio/).

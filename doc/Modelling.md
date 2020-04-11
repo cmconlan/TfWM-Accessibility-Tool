@@ -16,11 +16,12 @@ OTP may produce several values for each trip:
  - `transit_dist`,
  - `total_dist`,
  - `num_transfers`,
- - `fare` *Note: OTP does not inherently contain fare information, so this output is 0 and is calculated during the results aggregation*
+ - `fare` *Note: OTP does not inherently contain fare information, so this output is 0 and is calculated during the results aggregation.*
+
 OTP may not produce valid outputs for some trips - when the source and destination are too close, for example.
 
 The full ETL to Modelling pipeline was not possible on University Systems due to lack of support for Postgres, 
-so the `sql/create_model_otp_trips.csv` was used on a VM with Postgres isntalled to create and export all possible trips.
+so the `sql/create_model_otp_trips.csv` was used on a VM with Postgres installed to create and export all possible trips.
 
 ## Running OTP processing locally with CSV data
 
