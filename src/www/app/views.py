@@ -40,7 +40,7 @@ def get_population_metric():
 
 @app.route("/meta/demographic")
 def get_demographic():
-    results = execute_query("SELECT DISTINCT population FROM populations WHERE population NOT IN ('total')")
+    results = execute_query("SELECT DISTINCT population FROM populations WHERE population <> 'total'")
     return get_json(results)
 
 
