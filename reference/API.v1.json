@@ -155,7 +155,7 @@
           }
         },
         "operationId": "get-output-areas",
-        "description": "Index all output areas in GeoJSON format. Note the additional id in the properties of each feature."
+        "description": "Index all output areas in GeoJSON format. Note the additional id in the properties of each feature.\n\nGeoJSON data is contained within the `src/www/app/geo_simp.json` file. This endpoint simply returns the contents of the file in the body of the response."
       }
     },
     "/accessibility-metrics": {
@@ -278,7 +278,7 @@
           }
         },
         "operationId": "get-meta-ethnicity",
-        "description": "Index all demographics known by the system"
+        "description": "Index all demographics known by the system.\n\nDemographic groups are taken from the groups listed in the populations table, except 'total'."
       },
       "parameters": []
     },
@@ -312,7 +312,7 @@
           }
         },
         "operationId": "get-meta-accessibility-metric",
-        "description": "Index all accessibility metrics known by the system"
+        "description": "Index all accessibility metrics known by the system.\n\nThese will correspond to the `sum_x` fields in the OTP results summary table, where `x` is a metric such as 'generalised cost'."
       }
     },
     "/meta/time-strata": {
@@ -431,7 +431,7 @@
           }
         },
         "operationId": "get-meta-population-metric",
-        "description": "Index all population metrics known by the system"
+        "description": "Index all population metrics known by the system.\n\nThese are taken from the `POPULATION_METRICS` environment variable."
       }
     },
     "/population-metrics": {
