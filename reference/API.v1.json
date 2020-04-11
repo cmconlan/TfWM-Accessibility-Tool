@@ -5,15 +5,11 @@
     "version": "1.0",
     "description": "Accessibility Tool API"
   },
-  "servers": [
-    {
-      "url": "http://localhost:8080"
-    }
-  ],
+  "servers": [],
   "paths": {
     "/output-areas": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Output Area (OA) GeoJSON",
         "tags": [],
         "responses": {
           "200": {
@@ -160,7 +156,7 @@
     },
     "/accessibility-metrics": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Accessibility Metric Values for Each OA",
         "tags": [],
         "responses": {
           "200": {
@@ -242,7 +238,7 @@
     },
     "/meta/demographic": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Demographic Groups",
         "tags": [],
         "responses": {
           "200": {
@@ -284,7 +280,7 @@
     },
     "/meta/accessibility-metric": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Accessibility Metrics",
         "tags": [],
         "responses": {
           "200": {
@@ -317,7 +313,7 @@
     },
     "/meta/time-strata": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Time Strata",
         "tags": [],
         "responses": {
           "200": {
@@ -354,7 +350,7 @@
     },
     "/meta/point-of-interest-type": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Point of Interest Type",
         "tags": [],
         "responses": {
           "200": {
@@ -395,7 +391,7 @@
     },
     "/meta/population-metric": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Population Metrics",
         "tags": [],
         "responses": {
           "200": {
@@ -436,7 +432,7 @@
     },
     "/population-metrics": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Population Metric Values for Each OA",
         "tags": [],
         "responses": {
           "200": {
