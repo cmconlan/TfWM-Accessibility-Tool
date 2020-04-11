@@ -30,7 +30,7 @@ def test_meta_time_strata(client):
 
 
 def test_meta_demographic(client):
-    query = "SELECT DISTINCT population FROM populations"
+    query = "SELECT DISTINCT population FROM populations WHERE population <> 'total'"
     response = client.get("/meta/demographic")
     verify_response_against_query(response, query)
 
