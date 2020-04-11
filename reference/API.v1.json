@@ -5,15 +5,11 @@
     "version": "1.0",
     "description": "Accessibility Tool API"
   },
-  "servers": [
-    {
-      "url": "http://localhost:8080"
-    }
-  ],
+  "servers": [],
   "paths": {
     "/output-areas": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Output Area (OA) GeoJSON",
         "tags": [],
         "responses": {
           "200": {
@@ -155,12 +151,12 @@
           }
         },
         "operationId": "get-output-areas",
-        "description": "Index all output areas in GeoJSON format. Note the additional id in the properties of each feature."
+        "description": "Index all output areas in GeoJSON format. Note the additional id in the properties of each feature.\n\nGeoJSON data is contained within the `src/www/app/geo_simp.json` file. This endpoint simply returns the contents of the file in the body of the response."
       }
     },
     "/accessibility-metrics": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Accessibility Metric Values for Each OA",
         "tags": [],
         "responses": {
           "200": {
@@ -242,7 +238,7 @@
     },
     "/meta/demographic": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Demographic Groups",
         "tags": [],
         "responses": {
           "200": {
@@ -278,13 +274,13 @@
           }
         },
         "operationId": "get-meta-ethnicity",
-        "description": "Index all demographics known by the system"
+        "description": "Index all demographics known by the system.\n\nDemographic groups are taken from the groups listed in the populations table, except 'total'."
       },
       "parameters": []
     },
     "/meta/accessibility-metric": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Accessibility Metrics",
         "tags": [],
         "responses": {
           "200": {
@@ -312,12 +308,12 @@
           }
         },
         "operationId": "get-meta-accessibility-metric",
-        "description": "Index all accessibility metrics known by the system"
+        "description": "Index all accessibility metrics known by the system.\n\nThese will correspond to the `sum_x` fields in the OTP results summary table, where `x` is a metric such as 'generalised cost'."
       }
     },
     "/meta/time-strata": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Time Strata",
         "tags": [],
         "responses": {
           "200": {
@@ -354,7 +350,7 @@
     },
     "/meta/point-of-interest-type": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Point of Interest Type",
         "tags": [],
         "responses": {
           "200": {
@@ -395,7 +391,7 @@
     },
     "/meta/population-metric": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Population Metrics",
         "tags": [],
         "responses": {
           "200": {
@@ -431,12 +427,12 @@
           }
         },
         "operationId": "get-meta-population-metric",
-        "description": "Index all population metrics known by the system"
+        "description": "Index all population metrics known by the system.\n\nThese are taken from the `POPULATION_METRICS` environment variable."
       }
     },
     "/population-metrics": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Population Metric Values for Each OA",
         "tags": [],
         "responses": {
           "200": {
