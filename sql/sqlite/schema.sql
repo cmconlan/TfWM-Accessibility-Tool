@@ -1,9 +1,3 @@
--- qlDBM: MySQL ******************;
--- ***************************************************;
-
-
--- ************************************** `trip_strata`
-
 CREATE TABLE `trip_strata`
 (
  `trip_id` bigint(20) NOT NULL DEFAULT '0' ,
@@ -13,9 +7,6 @@ CREATE TABLE `trip_strata`
 
 PRIMARY KEY (`trip_id`)
 );
-
--- ************************************** `poi`
-
 CREATE TABLE `poi`
 (
  `poi_id`  int(11) NOT NULL DEFAULT '0' ,
@@ -26,9 +17,6 @@ CREATE TABLE `poi`
 
 PRIMARY KEY (`poi_id`)
 );
-
--- ************************************** `oa`
-
 CREATE TABLE `oa`
 (
  `oa_id`                                            varchar(10) PRIMARY KEY,
@@ -205,9 +193,6 @@ CREATE TABLE `oa`
  `lsoa11`                                           varchar(255) NULL DEFAULT NULL
 
 );
-
--- ************************************** `otp_trips`
-
 CREATE TABLE `otp_trips`
 (
  `oa_id`   varchar(10) NOT NULL ,
@@ -223,9 +208,6 @@ CONSTRAINT `otp_trips_ibfk_3 `FOREIGN KEY (`oa_id`) REFERENCES `oa` (`oa_id`),
 CONSTRAINT `otp_trips_ibfk_2` FOREIGN KEY (`trip_id`) REFERENCES `trip_strata` (`trip_id`) ON DELETE CASCADE ON UPDATE CASCADE,
 CONSTRAINT `otp_trips_ibfk_4` FOREIGN KEY (`poi_id`) REFERENCES `poi` (`poi_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
--- ************************************** `otp_results`
-
 CREATE TABLE `otp_results`
 (
  `trip_id`            bigint(20) PRIMARY KEY,
@@ -242,4 +224,15 @@ CREATE TABLE `otp_results`
  `num_transfers`      int(11) NULL DEFAULT NULL ,
  `fare`               text NULL ,
 CONSTRAINT `otp_results_ibfk_1` FOREIGN KEY (`trip_id`) REFERENCES `trip_strata` (`trip_id`)
+);
+CREATE TABLE populations(oa_id varchar(10), population text, count integer);
+CREATE TABLE otp_results_summary(
+  oa_id TEXT,
+  poi_type TEXT,
+  stratum TEXT,
+  num_trips,
+  sum_journey_time,
+  sum_walking_distance,
+  sum_fare,
+  sum_generalised_cost
 );
