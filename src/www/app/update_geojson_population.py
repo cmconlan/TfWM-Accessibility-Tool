@@ -22,6 +22,7 @@ for feature in geo_json['features']:
     feature['properties']['population'] = populations[feature['id']]
 
 # Open the file and overwrite the contents with the updated json.
-# The output is not formatted so the whole json just resides on one line, can be formatted with vs code.
+# The output is not formatted so the whole json just resides on one line.
+# Can be formatted with VSCode.
 with open(os.path.join(file_dir, 'geo_simp.json'), 'w') as json_file:
     json_file.write(json.dumps(geo_json))
