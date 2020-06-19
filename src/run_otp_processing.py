@@ -35,7 +35,7 @@ def get_step_size(num_trips: int, processes: int) -> int:
 def get_offsets(num_trips: int, step_size: int) -> list:
     '''
     Calculate the row offsets for each process such that all
-    prorceess have pairwise disjoint sets of rows
+    processes have pairwise disjoint sets of rows
     '''
     return np.arange(0, num_trips, step_size)
 

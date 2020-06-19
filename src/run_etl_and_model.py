@@ -1,28 +1,60 @@
 
 import os
-path = '/home/chris/Documents/TfWM-Accessibility-Tool/src/'
-os.chdir(path)
 import settings
-from modeling import model_functions
 from etl.load_raw import load_data_dict, load_text, load_gis, load_osm
+from modeling import model_functions
 from utils import *
 
+#%%
 suffix=''
 mode='replace'
 settings.load()
 ROOT_FOLDER = settings.get_root_dir()
+DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
 SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
 RESULTS_FOLDER = os.path.join(ROOT_FOLDER, 'results/')
+
+# Data files to be loaded
+data_config = os.path.join(ROOT_FOLDER, 'config/base/data_files.yaml')
+
+#%%
+# Get PostgreSQL database credentials 
 psql_credentials = settings.get_psql()
 
 # Create SQLAlchemy engine from database credentials
 engine = create_connection_from_dict(psql_credentials, 'postgresql')
-print('Database connected')
 
-#%% Finish ETL Processing
+#%%
 
-print("Transfer OSM data to raw")
-execute_sql(os.path.join(SQL_FOLDER,'update_osm_tables.sql'), engine, read_file=True)
+print("Creating schemas")
+execute_sql(os.path.join(SQL_FOLDER,'create_schemas.sql'), engine, read_file=True)
+
+#%%
+
+## ---- CREATE TABLES WITHIN RAW SCHEMA ----
+print("Creating tables")
+execute_sql(os.path.join(SQL_FOLDER, 'create_tables.sql'), engine, read_file=True)
+
+#%%
+
+## ---- LOAD RAW DATA TO DATABASE ----
+text_dict, gis_dict, osm_file = load_data_dict(data_config)
+
+#%%
+
+# Load CSV file to RAW schema
+print("Loading text files to RAW")
+load_text(DATA_FOLDER, text_dict, engine)
+
+#%%
+
+# Load GIS data to GIS schema
+print("Loading shapefiles to GIS")
+load_gis(DATA_FOLDER, gis_dict, psql_credentials)
+
+# Load OSM data to RAW schema
+print("Loading OSM data to RAW")
+load_osm(DATA_FOLDER, osm_file, psql_credentials, os.path.join(SQL_FOLDER, 'update_osm_tables.sql'), engine)
 
 ## ---- CLEAN DATA TO CLEANED SCHEMA ----
 print("Cleaning data")
@@ -60,5 +92,15 @@ model_functions.create_trips(SQL_FOLDER, suffix=suffix, engine=engine, mode=mode
 model_functions.compute_populations(SQL_FOLDER, population_dict, engine)
 
 #create otp trips
-
 execute_sql(os.path.join(SQL_FOLDER,'create_model_otp_trips.sql'), engine, read_file=True)
+
+# Write OTP trips to CSV
+conn = engine.raw_connection()
+try:
+    cursor = conn.cursor()
+    copy_statement = f"COPY (SELECT * FROM model.otp_trips) TO STDOUT WITH CSV HEADER"
+    with open(os.path.join(RESULTS_FOLDER, 'otp_trips.csv'), 'w') as csv_file:
+        cursor.copy_expert(copy_statement, csv_file)
+    cursor.close()
+finally:
+    conn.close()
