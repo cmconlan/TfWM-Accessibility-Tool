@@ -23,6 +23,23 @@ def get_mariadb():
     
     return mariadb_credentials
 
+def get_psql():
+    PSQL_HOST = os.environ['PSQL_HOST']
+    PSQL_DB = os.environ['PSQL_DB']
+    PSQL_USER = os.environ['PSQL_USER']
+    PSQL_PASSWORD = os.environ['PSQL_PASSWORD']
+    PSQL_PORT = os.environ['PSQL_PORT']
+    
+    psql_credentials = {
+        'host': PSQL_HOST,
+        'dbname': PSQL_DB,
+        'user': PSQL_USER,
+        'password': PSQL_PASSWORD,
+        'port': PSQL_PORT
+    }
+    
+    return psql_credentials
+
 def get_root_dir():
     ROOT_FOLDER = os.environ['ROOT_FOLDER']
     return ROOT_FOLDER
