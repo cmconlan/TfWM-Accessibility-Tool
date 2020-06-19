@@ -12,6 +12,7 @@ settings.load()
 ROOT_FOLDER = settings.get_root_dir()
 DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
 SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
+RESULTS_FOLDER = os.path.join(ROOT_FOLDER, 'results/')
 
 # Data files to be loaded
 data_config = os.path.join(ROOT_FOLDER, 'config/base/data_files.yaml')
@@ -91,5 +92,15 @@ model_functions.create_trips(SQL_FOLDER, suffix=suffix, engine=engine, mode=mode
 model_functions.compute_populations(SQL_FOLDER, population_dict, engine)
 
 #create otp trips
-
 execute_sql(os.path.join(SQL_FOLDER,'create_model_otp_trips.sql'), engine, read_file=True)
+
+# Write OTP trips to CSV
+conn = engine.raw_connection()
+try:
+    cursor = conn.cursor()
+    copy_statement = f"COPY (SELECT * FROM model.otp_trips) TO STDOUT WITH CSV HEADER"
+    with open(os.path.join(RESULTS_FOLDER, 'otp_trips.csv'), 'w') as csv_file:
+        cursor.copy_expert(copy_statement, csv_file)
+    cursor.close()
+finally:
+    conn.close()
