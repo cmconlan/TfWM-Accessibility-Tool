@@ -92,8 +92,8 @@ time_defs:
     sunday:
       - Sunday
   term:
-    start_date: 2020-1-10
-    end_date: 2020-2-10
+    start_date: 2020-6-12
+    end_date: 2020-7-13
 
 # List of time strata (segments)
 # For each stratum, sample n_sample timepoints if specified, otherwise hyper_params['n_timepoints']
