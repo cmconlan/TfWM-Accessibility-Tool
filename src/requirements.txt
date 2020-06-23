@@ -17,8 +17,6 @@ lunr==0.5.6
 MarkupSafe==1.1.1
 mkdocs==1.1
 more-itertools==8.2.0
-mysql-connector==2.2.9
-mysqlclient==1.4.6
 nltk==3.4.5
 nr.collections==0.0.1
 nr.databind==0.0.4

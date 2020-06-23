@@ -64,11 +64,11 @@ populations:
 # For each POI type, the value is # of nearest POIs included for each OA; if not specified (empty dict), use
 # hyper_params['k_POI']
 points_of_interest:
-  #Hospital: 2
-  #Job Centre: 2
-  #Strategic Centre: 1
-  #School: 3
-  #Childcare: 3
+  Hospital: 2
+  Job Centre: 2
+  Strategic Centre: 1
+  School: 3
+  Childcare: 3
   Rail Station: 2
 
 # Dict of time definitions, used for stratified sampling of timestamps
