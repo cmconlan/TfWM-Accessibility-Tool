@@ -19,7 +19,12 @@ csv_files = [
     '../results/results_7.csv',
     '../results/results_8.csv',
     '../results/results_9.csv',
-    '../results/results_10.csv'
+    '../results/results_10.csv',
+	'../results/results_11.csv',
+	'../results/results_12.csv',
+	'../results/results_13.csv',
+	'../results/results_14.csv',
+	'../results/results_15.csv'
 ]
 
 # Output file where we combine all the results
@@ -43,7 +48,7 @@ for csv_file in csv_files:
                 transit_time,
                 walk_dist,
                 transit_dist,
-                total_dist
+                total_dist,
                 num_transfers,
                 fare
             ] = line
@@ -76,6 +81,6 @@ for csv_file in csv_files:
             if index % 10000 == 0:
                 # To check progress while the script is running
                 print(f'{index} lines written. {(index / 19803420) * 100}% Done')
-        print('Lines containing blank values: ' + bad_lines)
+        print('Lines containing blank values: ' + str(bad_lines))
             
 print("Done")
