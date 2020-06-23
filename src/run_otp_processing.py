@@ -157,7 +157,7 @@ if __name__ == '__main__':
     settings.load()
     ROOT_FOLDER = settings.get_root_dir()
 
-    input_csv_name = os.path.join(ROOT_FOLDER, 'data/otp_trips_test.csv')
+    input_csv_name = os.path.join(ROOT_FOLDER, 'data/otp_trips.csv')
     output_dir = os.path.join(ROOT_FOLDER, 'results/')
 
     otp_data = split_trips(input_csv_name, output_dir)
