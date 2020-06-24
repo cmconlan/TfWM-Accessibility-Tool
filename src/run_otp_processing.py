@@ -7,7 +7,6 @@ import itertools
 import multiprocessing
 import numpy as np
 import pandas as pd
-from utils import load_yaml, create_connection_from_dict
 from modeling import open_trip_planner as otp
 
 
@@ -50,69 +49,50 @@ def get_csv_section(reader, offset, limit) -> object:
     return itertools.islice(reader, offset, offset+limit)
 
 
-def get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time) -> dict:
+def get_total_dist(walk_dist: str, transit_dist: str) -> float:
+    return float(walk_dist) + float(transit_dist)
+
+
+def get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time) -> tuple:
     '''Parse the response from OTP into a dict suitable for a Dataframe'''
-    response = otp.request_otp(host_url, oa_lat, poi_lat, oa_lon, poi_lon, date, time)
-    (
-        departure_time,
-        arrival_time,
-        total_time,
-        walk_time,
-        transfer_wait_time,
-        initial_wait_time,
-        transit_time,
-        walk_dist,
-        transit_dist,
-        total_dist,
-        num_transfers,
-        fare
-    ) = otp.parse_response(response, date, time)
-    response_dict = {
-        'departure_time': [departure_time],
-        'arrival_time': [arrival_time],
-        'total_time': [total_time],
-        'walk_time': [walk_time],
-        'transfer_wait_time': [transfer_wait_time],
-        'initial_wait_time': [initial_wait_time],
-        'transit_time': [transit_time],
-        'walk_dist': [walk_dist],
-        'transit_dist': [transit_dist],
-        'total_dist': [total_dist],
-        'num_transfers': [num_transfers],
-        'fare': [fare]
-    }
-    return response_dict
+    response_xml = otp.request_otp(host_url, oa_lat, poi_lat, oa_lon, poi_lon, date, time)
+    return otp.parse_response(response_xml, date, time)
 
 
-def dict_to_df(data_dict, index):
-    '''Produce a dataframe from a dict representing OTP results'''
-    df = pd.DataFrame(data_dict)
-    df.num_transfers = df.num_transfers.astype(pd.Int16Dtype())
-    df.set_index(index, inplace=True)
-    return df
+def valid_response(response: tuple) -> bool:
+    for value in response:
+        if value is None:
+            return False
+    else:
+        return True
+
+
+def write_complete_row(output_csv, completed_row):
+    writer = csv.writer(output_csv, delimiter=',')
+    writer.writerow(completed_row)
 
 
 def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
-    output_file = os.path.join(output_dir, f'results_{process_id}.csv')
+    output_file = os.path.join(output_dir, f'temp_{process_id}.csv')
     print(f"{process_id} on {host_url} for offset {offset} limit {limit} saving to {output_file}")
 
     row_counter = 0
     with open(input_file, 'r') as csv_file:
-        reader = csv.reader(csv_file)
-        csv_section = get_csv_section(reader, offset, limit)
-        for row in csv_section:
-            [oa_id, poi_id, date, time, trip_id, oa_lat, oa_lon, poi_lat, poi_lon] = row
-            
-            results = get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time)
-            results['trip_id'] = trip_id
-            # Rows are indivually appended to the file to avoid storing many rows in memory
-            dict_to_df(results, 'trip_id').to_csv(output_file, index=True, header=False, mode='a')
-
-            row_counter += 1
-            if row_counter % 1000 == 0:
-                print(f'Process {process_id} has completed {row_counter} rows. {(row_counter/limit) * 100}% done')
-    
-    print(f'{process_id} has completed its chunk. Saved to {output_file}')
+        with open(output_file, 'a', newline='') as output_csv:
+            reader = csv.DictReader(csv_file)
+            csv_section = get_csv_section(reader, offset, limit)
+            for row in csv_section:
+                response = get_otp_response(host_url, row['oa_lat'], row['oa_lon'], row['poi_lat'], row['poi_lon'], row['date'], row['time'])
+                if valid_response(response):
+                    complete_row = (row['trip_id'], *response)
+                    write_complete_row(output_csv, complete_row)
+                    row_counter += 1
+                    if row_counter % 1000 == 0:
+                        print(f'Process {process_id} has completed {row_counter} rows. {(row_counter/limit) * 100}% done')
+                else:
+                    continue
+    print(f'{process_id} has completed its chunk.')
+    return output_file
 
 
 def split_trips(input_file: str, output_dir: str) -> None:
@@ -143,22 +123,39 @@ def split_trips(input_file: str, output_dir: str) -> None:
     data = data.tolist()
 
     start = time.time()
-    pool = multiprocessing.Pool(int(processes))
-    results = pool.starmap(compute_trips, [tuple(row) for row in data])
-    pool.close()
+    lock = multiprocessing.Lock()
+    with multiprocessing.Pool(int(processes)) as pool:
+        results = pool.starmap(compute_trips, [tuple(row) for row in data])
+
 
     end = time.time()
     elapsed = end - start
-    print("Minutes elapsed {}".format(elapsed / 60.0))
+    print("{}min elapsed.".format(elapsed / 60.0))
+    return results
 
+
+def combine_complete_files(output_dir, files):
+    output_file = open(os.path.join(output_dir, 'results_full_test.csv'), 'w')
+    output_csv = csv.writer(output_file)
+
+    for csv_file in files:
+        with open(csv_file, newline='') as f:
+            reader = csv.reader(f)
+            for index, line in enumerate(reader):
+                output_csv.writerow(line)
+
+
+def cleanup(complete_files):
+    for f in complete_files:
+        os.remove(f)
 
 if __name__ == '__main__':
-
     settings.load()
     ROOT_FOLDER = settings.get_root_dir()
-
-    input_csv_name = os.path.join(ROOT_FOLDER, 'data/otp_trips.csv')
+    input_csv = os.path.join(ROOT_FOLDER, 'data/otp_trips_test.csv')
     output_dir = os.path.join(ROOT_FOLDER, 'results/')
 
-    otp_data = split_trips(input_csv_name, output_dir)
+    complete_files = split_trips(input_csv, output_dir)
+    combine_complete_files(output_dir, complete_files)
+    cleanup(complete_files)
     print("Done!")
