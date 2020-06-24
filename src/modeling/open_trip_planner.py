@@ -1,26 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from utils import *
-import csv
-
-
-# class Trip:
-#     def __init__(self, trip_id, total_time, walk_time,
-#                  transfer_wait_time, initial_wait_time, transit_time, 
-#                  walk_dist, transit_dist, total_dist,
-#                  num_transfers, fare):
-#         self.trip_id = trip_id
-#         self.total_time = total_time
-#         self.walk_time = walk_time
-#         self.transfer_wait_time = transfer_wait_time
-#         self.initial_wait_time = initial_wait_time
-#         self.transit_time = transit_time
-#         self.walk_dist = walk_dist
-#         self.transit_dist = transit_dist
-#         self.total_dist = total_dist
-#         self.num_transfers = num_transfers
-#         self.fare = fare
 
 
 def request_otp(host_url, lat_oa, lat_poi, lon_oa, lon_poi, date, time):
@@ -40,6 +20,29 @@ def request_otp(host_url, lat_oa, lat_poi, lon_oa, lon_poi, date, time):
         headers={'accept': 'application/xml'}
     )
     return resp
+
+
+def get_total_distance_from_itinerary(itinerary):
+    total_dist = 0.0
+    for legs in itinerary.findall('legs'):
+        if legs.find('legs') is not None:
+            for leg in legs.findall('legs'):
+                total_dist += float(leg.find('distance').text)
+    return total_dist
+
+
+def get_fare_from_itinerary(itinerary):
+    if itinerary.find('fare') is not None:
+        fare_obj = itinerary.find('fare')
+        if fare_obj.find('details') is not None:
+            return float(fare_obj.find('details').find('regular').find('price').find('cents').text) / 100
+
+
+def calculate_fare(num_transfers, walk_time, total_time):
+    if walk_time == total_time:
+        return 0.0
+    else:
+        return 2.40 * (num_transfers + 1)
 
 
 def parse_response(response, date, time):
@@ -70,6 +73,7 @@ def parse_response(response, date, time):
             total_dist = 0.0
             num_transfers = 0
             initial_wait_time = 0.0
+            fare = 0.0
     else:
         plan = xml.find('plan')
         for itineraries in plan.findall('itineraries'):
@@ -86,19 +90,13 @@ def parse_response(response, date, time):
                     walk_dist = float(itinerary.find('walkDistance').text)
                     num_transfers = int(itinerary.find('transfers').text)
 
-                    for legs in itinerary.findall('legs'):
-                        if legs.find('legs') is not None:
-                            for leg in legs.findall('legs'):
-                                if total_dist is None:
-                                    total_dist = 0.0
-                                total_dist = total_dist + float(leg.find('distance').text)
-                    if itinerary.find('fare') is not None:
-                        fare_obj = itinerary.find('fare')
-                        if fare_obj.find('details') is not None:
-                            fare = float(fare_obj.find('details').find('regular').find('price').find('cents').text) / 100
+
+                    total_dist = get_total_distance_from_itinerary(itinerary)
+                    fare = get_fare_from_itinerary(itinerary)
+                    if fare is None:
+                        fare = calculate_fare(num_transfers, walk_time, total_time)
 
                     # capture the wait time before the first bus arrives
-
                     initial_wait_time = (departure_time - query_time).total_seconds()
                     transit_dist = total_dist - walk_dist            
 
