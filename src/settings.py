@@ -46,8 +46,8 @@ def get_root_dir():
 
 def get_otp_settings():
     LOAD_BALANCER_HOST = os.environ['LOAD_BALANCER_HOST']
-    LOAD_BALANCER_PORT = os.environ['LOAD_BALANCER_PORT']
-    NUM_PROCESSES = os.environ['NUM_PROCESSES']
-    NUM_OTPS = os.environ['NUM_OTPS']
+    LOAD_BALANCER_PORT = int(os.environ['LOAD_BALANCER_PORT'])
+    NUM_PROCESSES = int(os.environ['NUM_PROCESSES'])
+    NUM_OTPS = int(os.environ['NUM_OTPS'])
     return LOAD_BALANCER_HOST, LOAD_BALANCER_PORT, NUM_PROCESSES, NUM_OTPS
 
