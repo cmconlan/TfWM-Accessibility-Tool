@@ -101,3 +101,6 @@ def parse_response(response, date, time):
                     transit_dist = total_dist - walk_dist            
 
     return departure_time, arrival_time, total_time, walk_time, transfer_wait_time, initial_wait_time, transit_time, walk_dist, transit_dist, total_dist, num_transfers, fare
+
+if __name__ == '__main__':
+    pass
