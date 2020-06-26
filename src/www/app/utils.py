@@ -202,7 +202,8 @@ def at_risk_scores(demographics, poi_types, time_strata):
     for (oa_id,) in oa_ids_ordered_by_population:
         # We only want at-risk score for the 50% most populated OAs
         if oa_count <= half_number_of_oas:
-            at_risk_score[oa_id] = generalised_score[oa_id] / density[oa_id] 
+            if density[oa_id] > 0:
+                at_risk_score[oa_id] = generalised_score[oa_id] / density[oa_id] 
             oa_count += 1
         else:
             break
