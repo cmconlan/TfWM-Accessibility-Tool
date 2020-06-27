@@ -105,7 +105,7 @@ def create_connection_from_yaml(yamlfile, driver):
     return engine
 
 
-def copy_text_to_db(src_file, dst_table, engine, mode='append', header=True, sep=','):
+def copy_text_to_db(src_file, dst_table, engine, header=True, sep=','):
     """
     Copy a csv or txt file to a specified database, where the corresponding table has been created
     Parameters
@@ -121,28 +121,23 @@ def copy_text_to_db(src_file, dst_table, engine, mode='append', header=True, sep
     engine : SQLAlchemy engine object
         Connection to the target database
     
-    mode : str
-        {"append", "replace"}
-        Either append to the database table or replace it
-
-    mode : str
-        {"append", "replace"}
-        Either append to the database table or replace it
     Returns
     -------
     None
     """
-
     conn = engine.raw_connection()
-    cur = conn.cursor()
-    with open(src_file, 'r', encoding='ISO-8859-1') as f:
-        if header:
-            head = 'HEADER'
-        else:
-            head = ''
-        cur.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
-    print(f"{src_file} copied to {dst_table}")
-    conn.commit()
+    try:
+        cursor = conn.cursor()
+        with open(src_file, 'r', encoding='ISO-8859-1') as f:
+            if header:
+                head = 'HEADER'
+            else:
+                head = ''
+            cursor.copy_expert(f"COPY {dst_table} FROM STDIN with DELIMITER '{sep}' {head} CSV", f)
+            conn.commit()
+            print(f"{src_file} copied to {dst_table}")
+    finally:
+        conn.close()
 
 
 def execute_sql(string, engine, read_file, print_=False, return_df=False, chunksize=None, params=None):
