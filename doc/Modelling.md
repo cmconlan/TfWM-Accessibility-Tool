@@ -26,7 +26,7 @@ so the `sql/create_model_otp_trips.csv` was used on a VM with Postgres installed
 ## Running OTP processing locally with CSV data
 
 ### Setup
-1. Set the relevant environment variables in `src/.env`. Use the `.env-template` file to fill in your specific details, then rename the file to .env:
+1. Set the relevant environment variables in `src/.env`. Use the `.env-template` file to fill in your specific details, then rename the file to `.env`:
 ```
 ...
 # The OTP process is done in parallel on multiple processes. This var sets how many processes are used

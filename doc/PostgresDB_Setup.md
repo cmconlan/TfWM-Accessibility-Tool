@@ -150,7 +150,7 @@ sudo yum install osm2pgsql
 
 ### 4 Setup workspace and provide data
 #### 4.1 Conigure environment variables
-The `.env` file under the `src` directory contains system-wide variables used throughout the codebase.
+The `.env` file under the `src` directory contains system-wide variables used throughout the codebase. Use the `.env-template` file to fill in your specific details, then rename the file to `.env`
 For the purposes of ETL, the following fields need to be filled in:
 Note: You may however need to change the DB URL prefix in calls tp `create_connection` to match the database you are using
 ```
