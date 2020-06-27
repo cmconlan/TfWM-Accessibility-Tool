@@ -6,3 +6,4 @@ venv
 *.pyc
 src/www/.env
 tfwm.db
+src/.env
