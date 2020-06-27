@@ -247,7 +247,7 @@ def compute_populations(sql_dir, populations, engine):
     print('OA-level demographics saved to RESULTS.populations')
 
 
-def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, csv_dir, suffix, chunksize):
+def compute_trips(id_, host_url, offset, limit, sql_dir, db_credentials, csv_dir, suffix, chunksize):
     """
     Compute query result from Open Trip Planner and save to RESULTS.trips (for example see Google Docs) for each given
     trip, defined by the following attributes/parameters:
@@ -272,7 +272,7 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, cs
         Number of rows to limit query to. {offset} + {limit} gives the end trip number of the table
     sql_dir : str
         Directory that stores query_trip_info.sql
-    mariadb_credentials : dict
+    db_credentials : dict
         Dictionary of PSQL credentials in order to create SQLAlchemy engine
     csv_dir : str
         Directory to save results in csv formats
@@ -291,7 +291,7 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, cs
 
     query_sql_file = os.path.join(sql_dir, 'query_trip_info.sql')
     params = {'limit': limit, 'offset': offset}
-    engine = create_connection_from_dict(mariadb_credentials, 'mysql+mysqldb')
+    engine = create_connection_from_dict(db_credentials, 'mysql+mysqldb')
 
     count = 1
     
@@ -319,7 +319,7 @@ def compute_trips(id_, host_url, offset, limit, sql_dir, mariadb_credentials, cs
         count += 1
 
 
-def split_trips(host, port, threads, sql_dir, engine, mariadb_credentials):
+def split_trips(host, port, threads, sql_dir, engine, db_credentials):
     """
     Parameters
     ----------
@@ -334,7 +334,7 @@ def split_trips(host, port, threads, sql_dir, engine, mariadb_credentials):
     csv_dir : str
         Directory where result CSVs are stored
     engine : SQLAlchemy engine object
-    mariadb_credentials : dict
+    db_credentials : dict
         Dictionary of PSQL credentials
     suffix : str
         Suffix (if any) to append to table names
@@ -363,7 +363,7 @@ def split_trips(host, port, threads, sql_dir, engine, mariadb_credentials):
     data[:, 2] = offsets  # offsets
     data[:, 3] = limits  # limits
     data[:, 4] = [sql_dir] * threads  # constant sql dir
-    data[:, 5] = [mariadb_credentials] * threads  # constant credentials (since can't pass an eng directly)
+    data[:, 5] = [db_credentials] * threads  # constant credentials (since can't pass an eng directly)
 
     data = data.tolist()
     # Execute queries on separate threads
