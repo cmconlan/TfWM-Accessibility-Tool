@@ -1,27 +1,12 @@
 from dotenv import load_dotenv, find_dotenv
 import os
 
+
 def load():
     # DotEnv starts searching at / for some reason, therefore need to keep 
     # .env relative to settings.py
     load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
-def get_mariadb():
-    MARIADB_HOST = os.environ['MARIADB_HOST']
-    MARIADB_DB = os.environ['MARIADB_DB']
-    MARIADB_USER = os.environ['MARIADB_USER']
-    MARIADB_PASSWORD = os.environ['MARIADB_PASSWORD']
-    MARIADB_PORT = os.environ['MARIADB_PORT']
-    
-    mariadb_credentials = {
-        'host': MARIADB_HOST,
-        'dbname': MARIADB_DB,
-        'user': MARIADB_USER,
-        'password': MARIADB_PASSWORD,
-        'port': MARIADB_PORT
-    }
-    
-    return mariadb_credentials
 
 def get_psql():
     PSQL_HOST = os.environ['PSQL_HOST']
@@ -40,14 +25,24 @@ def get_psql():
     
     return psql_credentials
 
+
 def get_root_dir():
     ROOT_FOLDER = os.environ['ROOT_FOLDER']
     return ROOT_FOLDER
 
+
 def get_otp_settings():
-    LOAD_BALANCER_HOST = os.environ['LOAD_BALANCER_HOST']
-    LOAD_BALANCER_PORT = int(os.environ['LOAD_BALANCER_PORT'])
+    OTP_HOST = os.environ['OTP_HOST']
+    OTP_PORT = int(os.environ['OTP_PORT'])
     NUM_PROCESSES = int(os.environ['NUM_PROCESSES'])
     NUM_OTPS = int(os.environ['NUM_OTPS'])
-    return LOAD_BALANCER_HOST, LOAD_BALANCER_PORT, NUM_PROCESSES, NUM_OTPS
+    return OTP_HOST, OTP_PORT, NUM_PROCESSES, NUM_OTPS
 
+
+def get_sqlite_settings():
+    PATH = os.environ['SQLITE_PATH']
+    return PATH
+
+
+def get_environemnt_variable(var: str) -> str:
+    return os.environ[var]

@@ -152,24 +152,15 @@ sudo yum install osm2pgsql
 #### 4.1 Conigure environment variables
 The `.env` file under the `src` directory contains system-wide variables used throughout the codebase.
 For the purposes of ETL, the following fields need to be filled in:
-Note: The settings.py file refers to database credentials with the MARIADB prefix. During development we had to switch databases
-multiple times due to IT restrictions, however using SQLAlchemy means these fields can be filled in for other DBMS.
-You may however need to change the SQLAlchemy DB URL prefix in calls to `create_connetion` to match the dirver e.g `mysql+mysqldb`, `sqlite`
+Note: You may however need to change the DB URL prefix in calls tp `create_connection` to match the database you are using
 ```
 # The absolute path to the top level repository directory e.g /dcs/project/transport-access-tool/TfWM-Accessibility-Tool
 ROOT_FOLDER= 
-# The database user access is done through
-MARIADB_USER=
-# If required, the database password
-MARIADB_PASSWORD=
-# The database name
-MARIADB_DB=
-# The host address of the database e.g mysql.dcs.warwick.ac.uk
-MARIADB_HOST=
-# Port the database is running on
-MARIADB_PORT=3306
+# The path to the location of the .db SQLite file
+SQLIE_PATH=
 ...
 ```
+You may add other variables to the `.env` file, and these can be loaded with `settings.get_environment_variable`
 #### 4.2 Provide data files
 The file `/config/base/data_files.yaml` lists the data files that you want to upload to the database from `/data`.
 

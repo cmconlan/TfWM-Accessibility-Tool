@@ -34,9 +34,9 @@ NUM_PROCESSES=
 # The number of instances of OTP Servers. Processes are assigned an OTP server.
 NUM_OTPS=
 # The base port of OTP servers e.g if 2 OTPs are running on 8080 and 8082, the base port is 8080
-LOAD_BALANCER_PORT=
+OTP_PORT=
 # The host where the OTP server instances are running. Typically this is set to localhost
-LOAD_BALANCER_HOST=
+OTP_HOST=
 ```
 2. Prepare the `/data` and `/results` directories - `/data` should contain the OTP trip enumerations to be fed as input to OTP, while
 `/results` will produce the output of each process in a separate results `csv` file. The input and output files can be set in `run_otp_processing.py`.
