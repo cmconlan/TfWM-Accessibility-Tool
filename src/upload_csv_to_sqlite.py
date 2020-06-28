@@ -8,7 +8,7 @@ DEFAULT_CHUNK_SIZE = 10000                  # How many rows to load per df chunk
 SUMMARY_TABLE_NAME = 'otp_results_summary'  # Name of table where OTP results are summarised
 
 
-def parse_file_and_table() -> dict[str, str]:
+def parse_file_and_table() -> dict:
     '''Parse the input arguments and return a dict keyed by arg names'''
     parser = argparse.ArgumentParser(description='Upload a CSV file to a corresponding table in SQLite')
     parser.add_argument('file', type=str, help='Path to CSV file. The first row is used for column headers')
