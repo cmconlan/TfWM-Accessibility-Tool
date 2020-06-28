@@ -2,18 +2,16 @@ import os
 import settings
 import csv
 import time
-import subprocess
 import itertools
 import multiprocessing
 import numpy as np
-import pandas as pd
 from modeling import open_trip_planner as otp
 
 
 def get_csv_reader(input_file: str):
     '''Get the CSV reader object for a file'''
     with open(input_file, 'r') as csv_file:
-        return csv.reader(otp_trips)
+        return csv.reader(csv_file)
 
 
 def num_rows(file_name: str) -> int:
@@ -49,10 +47,15 @@ def get_csv_section(reader, offset, limit) -> object:
     return itertools.islice(reader, offset, offset+limit)
 
 
-def get_otp_response(host_url, oa_lat, oa_lon, poi_lat, poi_lon, date, time) -> tuple:
+def get_otp_response(host_url, input_row) -> tuple:
     '''Parse the response from OTP into tuple of values represnting trip attributes'''
-    response_xml = otp.request_otp(host_url, oa_lat, poi_lat, oa_lon, poi_lon, date, time)
-    return otp.parse_response(response_xml, date, time)
+    date = input_row['date']
+    time = input_row['time']
+    response = otp.request_otp(host_url, input_row)
+    trip = otp.parse_response(response)
+    if trip:
+        trip['trip_id'] = input_row['trip_id']
+    return trip
 
 
 def valid_response(response: tuple) -> bool:
@@ -73,18 +76,27 @@ def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
         # requires that the first row of the file has valid, standard headers
         reader = csv.DictReader(csv_file)
         csv_section = get_csv_section(reader, offset, limit)
+        # Treat the first row differently because we want to extract
+        # CSV headers from the file, allowing us to use DictReader.
+        firstRow = next(csv_section)
+        first_response = get_otp_response(host_url, firstRow)
+        headers = first_response.keys()
         with open(output_file, 'a', newline='') as output_csv:
-            writer = csv.writer(output_csv, delimiter=',')
+            writer = csv.DictWriter(output_csv, fieldnames=headers, delimiter=',')
+            writer.writeheader()
+            writer.writerow(first_response)
             for row in csv_section:
-                response = get_otp_response(host_url, row['oa_lat'], row['oa_lon'], row['poi_lat'], row['poi_lon'], row['date'], row['time'])
-                # Attempting to parse a trip where there was no route returns None for trip values.
-                # If the response from OTP is an invalid trip it is skipped
-                # if valid_response(response):
-                complete_row = (row['trip_id'], *response)
-                writer.writerow(complete_row)
-                row_counter += 1
-                if row_counter % 1000 == 0:
-                    print(f'Process {process_id} has completed {row_counter} rows. {((row_counter/limit) * 100):.2f}% for this process')
+                response = get_otp_response(host_url, row)
+                # Some trips have None for all attributes due to OTP error or inability to find a trip
+                # These trips return 'False' instead of a dict so empty rows are not written to CSV.
+                if response:
+                    writer.writerow(response)
+                    row_counter += 1
+                    if row_counter % 1000 == 0:
+                        print((
+                            f'Process {process_id} has completed {row_counter} rows. '
+                            f'{((row_counter/limit) * 100):.2f}% for this process'
+                        ))
 
     print(f'{process_id} has completed its chunk.')
     return output_file
@@ -125,18 +137,28 @@ def split_trips(input_file: str, output_dir: str) -> None:
     return results
 
 
+def extract_headers(csv_file):
+    with open(csv_file, 'r') as f:
+        reader = csv.reader(f)
+        return next(reader)
+
+
 def combine_complete_files(output_dir, files):
     '''Combine the individual files produced by each process into a single main file'''
     output_file_name = os.path.join(output_dir, 'results_full.csv')
-    output_file = open(output_file_name, 'w')
     print("Combining results to: " + output_file_name)
-    output_csv = csv.writer(output_file)
-    for csv_file in files:
-        with open(csv_file, newline='') as f:
-            reader = csv.reader(f)
-            for index, line in enumerate(reader):
-                output_csv.writerow(line)
-    output_file.close()
+    files_iterator = iter(files)
+    # Treat the first file differently, so we can extract headers
+    first_file = files[0]
+    headers = extract_headers(first_file)
+    with open(output_file_name, 'w') as output_file:
+        output_csv = csv.writer(output_file)
+        output_csv.writerow(headers)
+        for csv_file in files:
+            with open(csv_file, newline='') as f:
+                reader = csv.DictReader(f)
+                for line in reader:
+                    output_csv.writerow(line.values())
 
 
 def cleanup(complete_files):
@@ -152,7 +174,6 @@ if __name__ == '__main__':
     # Input CSV MUST HAVE HEADERS - these are included by default by the ETL process
     input_csv = os.path.join(ROOT_FOLDER, 'data/otp_trips_test.csv')
     output_dir = os.path.join(ROOT_FOLDER, 'results/')
-
     complete_files = split_trips(input_csv, output_dir)
     combine_complete_files(output_dir, complete_files)
     cleanup(complete_files)
