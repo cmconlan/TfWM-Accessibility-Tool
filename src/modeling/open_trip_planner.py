@@ -3,13 +3,13 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 
 
-def request_otp(host_url, lat_oa, lat_poi, lon_oa, lon_poi, date, time):
+def request_otp(host_url, input_row):
     url = host_url + '/otp/routers/default/plan?'
     params = {
-        "fromPlace": f"{lat_oa},{lon_oa}",
-        "toPlace": f"{lat_poi},{lon_poi}",
-        "date": f"{date}",
-        "time": f"{time}",
+        "fromPlace": f"{input_row['oa_lat']},{input_row['oa_lon']}",
+        "toPlace": f"{input_row['poi_lat']},{input_row['poi_lon']}",
+        "date": f"{input_row['date']}",
+        "time": f"{input_row['time']}",
         "mode": "TRANSIT,WALK",
         "arriveBy": "false",
         "numItineraries": "1"
@@ -20,6 +20,17 @@ def request_otp(host_url, lat_oa, lat_poi, lon_oa, lon_poi, date, time):
         headers={'accept': 'application/xml'}
     )
     return resp
+
+
+def get_request_parameter(node: ET.Element, param: str) -> str:
+    request_parameters = node.find('requestParameters')
+    return request_parameters.find(param).text
+
+
+def get_time_from_itinerary(time: str, itinerary):
+    dt = datetime.fromtimestamp(float(itinerary.find(time).text) / 1000)
+    dt += timedelta(hours=1)
+    return dt
 
 
 def get_total_distance_from_itinerary(itinerary):
@@ -45,62 +56,97 @@ def calculate_fare(num_transfers, walk_time, total_time):
         return 2.40 * (num_transfers + 1)
 
 
-def parse_response(response, date, time):
-    xml = ET.fromstring(response.content)
-    departure_time = None
-    arrival_time = None
-    total_time = None
-    walk_time = None
-    transfer_wait_time = None
-    transit_time = None
-    walk_dist = None
-    transit_dist = None
-    total_dist = None
-    num_transfers = None
-    initial_wait_time = None
-    fare = None
+def validate_trip(trip: dict) -> bool:
+    for value in trip.values():
+        if value is None:
+            return False
+    return True
+
+
+def parse_response(response):
+    root = ET.fromstring(response.content)
+    trip = {
+        'departure_time': None,
+        'arrival_time': None,
+        'total_time': None,
+        'walk_time': None,
+        'transfer_wait_time': None,
+        'transit_time': None,
+        'walk_dist': None,
+        'transit_dist': None,
+        'total_dist': None,
+        'num_transfers': None,
+        'initial_wait_time': None,
+        'fare': None
+    }
+    date = get_request_parameter(root, 'date')
+    time = get_request_parameter(root, 'time')
     query_time = datetime.strptime(' '.join([date, time]), '%Y-%m-%d %H:%M')
-    if xml.find('error').find('msg') is not None:
-        if xml.find('error').find('message').text in "TOO_CLOSE":
-            departure_time = query_time
-            arrival_time = query_time
-            total_time = 0.0
-            walk_time = 0.0
-            transfer_wait_time = 0.0
-            transit_time = 0.0
-            walk_dist = 0.0
-            transit_dist = 0.0
-            total_dist = 0.0
-            num_transfers = 0
-            initial_wait_time = 0.0
-            fare = 0.0
+    # Check if there was an error in the OTP response
+    trip_valid = False
+    if root.find('error').find('msg') is not None:
+        # The start and destination were too close, no trip could be found
+        if root.find('error').find('message').text in "TOO_CLOSE":
+            trip['departure_time'] = query_time
+            trip['arrival_time'] = query_time
+            trip['total_time'] = 0.0
+            trip['walk_time'] = 0.0
+            trip['transfer_wait_time'] = 0.0
+            trip['transit_time'] = 0.0
+            trip['walk_dist'] = 0.0
+            trip['transit_dist'] = 0.0
+            trip['total_dist'] = 0.0
+            trip['num_transfers'] = 0
+            trip['initial_wait_time'] = 0.0
+            trip['fare'] = 0.0
+            trip_valid = True
     else:
-        plan = xml.find('plan')
+        plan = root.find('plan')
+        # Go through the iteneraries found in the plan. Should only be 1
         for itineraries in plan.findall('itineraries'):
-            if itineraries.find('itineraries') is not None:  # Note that this line discards error xmls, where there was no route
+            if itineraries.find('itineraries') is not None:  # Note that this line discards error XML, where there was no route
                 for itinerary in itineraries.findall('itineraries'):
-                    departure_time = datetime.fromtimestamp(float(itinerary.find('startTime').text) / 1000)
-                    departure_time += timedelta(hours=1)
-                    arrival_time = datetime.fromtimestamp(float(itinerary.find('endTime').text) / 1000)
-                    arrival_time += timedelta(hours=1)
-                    total_time = float(itinerary.find('duration').text)
-                    walk_time = float(itinerary.find('walkTime').text)
-                    transfer_wait_time = float(itinerary.find('waitingTime').text)
-                    transit_time = float(itinerary.find('transitTime').text)
-                    walk_dist = float(itinerary.find('walkDistance').text)
-                    num_transfers = int(itinerary.find('transfers').text)
-
-
-                    total_dist = get_total_distance_from_itinerary(itinerary)
-                    fare = get_fare_from_itinerary(itinerary)
-                    if fare is None:
-                        fare = calculate_fare(num_transfers, walk_time, total_time)
-
+                    format_str = '%Y-%m-%d %H:%M:%S'
+                    trip['arrival_time'] = get_time_from_itinerary('endTime', itinerary).strftime(format_str)
+                    trip['total_time'] = float(itinerary.find('duration').text)
+                    trip['walk_time'] = float(itinerary.find('walkTime').text)
+                    trip['transfer_wait_time'] = float(itinerary.find('waitingTime').text)
+                    trip['transit_time'] = float(itinerary.find('transitTime').text)
+                    trip['walk_dist'] = float(itinerary.find('walkDistance').text)
+                    trip['num_transfers'] = int(itinerary.find('transfers').text)
+                    trip['total_dist'] = get_total_distance_from_itinerary(itinerary)
+                    trip['fare'] = get_fare_from_itinerary(itinerary)
+                    if trip['fare'] is None:
+                        trip['fare'] = calculate_fare(trip['num_transfers'], trip['walk_time'], trip['total_time'])
                     # capture the wait time before the first bus arrives
-                    initial_wait_time = (departure_time - query_time).total_seconds()
-                    transit_dist = total_dist - walk_dist            
-
-    return departure_time, arrival_time, total_time, walk_time, transfer_wait_time, initial_wait_time, transit_time, walk_dist, transit_dist, total_dist, num_transfers, fare
+                    departure_time = get_time_from_itinerary('startTime', itinerary)
+                    trip['initial_wait_time'] = (departure_time - query_time).total_seconds()
+                    trip['departure_time'] = departure_time.strftime(format_str)
+                    trip['transit_dist'] = trip['total_dist'] - trip['walk_dist']
+                    trip_valid = validate_trip(trip)
+    if trip_valid:
+        return trip
+    else:
+        return False
 
 if __name__ == '__main__':
-    pass
+    host = "http://localhost:8080"
+    test_trip = {
+        'oa_lat': 52.4543590421403,
+        'oa_lon': -1.81185753550122,
+        'poi_lat': 52.43833923,
+        'poi_lon': -1.808046699,
+        'date': '2020-7-28',
+        'time': '07:07'
+    }
+    faulty_trip = {
+        'oa_lat': 52.4493792783661,
+        'oa_lon': -1.82771262209541,
+        'poi_lat': 52.43833923,
+        'poi_lon': -1.808046699,
+        'date': '2020-07-28',
+        'time': '13:49'
+    }
+    response = request_otp(host, faulty_trip)
+    print(response.content)
+    print(parse_response(response, ))
