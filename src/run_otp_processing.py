@@ -8,7 +8,7 @@ import numpy as np
 from modeling import open_trip_planner as otp
 
 
-def get_csv_reader(input_file: str):
+def get_csv_reader(input_file: str) -> csv.reader:
     '''Get the CSV reader object for a file'''
     with open(input_file, 'r') as csv_file:
         return csv.reader(csv_file)
@@ -66,7 +66,16 @@ def valid_response(response: tuple) -> bool:
         return True
 
 
-def compute_trips(process_id, host_url, offset, limit, input_file, output_dir):
+def compute_trips(process_id: int, host_url: str, offset: int, limit: int, input_file: str, output_dir: str) -> str:
+    """
+    Send a request to OTP, parse the response and write a line to the output file.
+    Note: Parallel processing begins and ends here - each Python process will run this
+    function until it has completed its 'chunk' of data, then it will return the name
+    of the file it wrote its data to.
+    Recall that individual processes do not share global variables and other data - each 
+    process holds a copy of the parent's (process it was created from) data independently 
+    of any other process.
+    """
     output_file = os.path.join(output_dir, f'temp_{process_id}.csv')
     print(f"{process_id} on {host_url} for offset {offset} limit {limit} saving to {output_file}")
 
@@ -118,7 +127,7 @@ def split_trips(input_file: str, output_dir: str) -> None:
 
     data = np.zeros(shape=(processes, 6), dtype=object)
     # Each row of data[] is a set of arguments to compute_trips
-    data[:, 0] = np.arange(1, processes + 1)  # ID's
+    data[:, 0] = np.arange(1, processes + 1)  # Process ID's
     data[:, 1] = hosts
     data[:, 2] = offsets
     data[:, 3] = limits
