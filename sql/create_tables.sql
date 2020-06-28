@@ -431,4 +431,4 @@ CREATE TABLE if not exists raw.wmca_rail_stations_uk (
 
 
 CREATE EXTENSION IF NOT EXISTS hstore;
-CREATE EXTENSION IF NOT EXISTS postgis
+CREATE EXTENSION IF NOT EXISTS postgis;
