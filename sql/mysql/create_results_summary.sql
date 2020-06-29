@@ -15,10 +15,10 @@ FROM
             a.*, 
             b.oa_id, 
             c.type AS poi_type, 
-            d.stratum, 
-            (total_time*1.5) + ((initial_wait_time + transfer_wait_time) * 1.5) + ((total_time - walk_time) * 1.5) + (num_transfers * 10) + (fare / 6.7) AS generalised_cost
+            d.stratum,
+            ( ( 1.5 * (total_time + initial_wait_corrected)) - (0.5 * transit_time) + ((fare * 3600) / 6.7) + (10 * num_transfers) ) / 60 AS generalised_cost
         FROM 
-            otp_results AS a 
+            (select *, initial_wait_time - 3600 as initial_wait_corrected from otp_results) AS a 
             LEFT JOIN otp_trips AS b ON a.trip_id = b.trip_id 
             LEFT JOIN poi AS c ON b.poi_id = c.poi_id
             LEFT JOIN trip_strata AS d ON a.trip_id = d.trip_id
