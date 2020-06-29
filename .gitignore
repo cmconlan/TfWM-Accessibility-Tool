@@ -4,6 +4,6 @@ data/*
 results/*
 venv
 *.pyc
+src/.env
 src/www/.env
 tfwm.db
-.env
