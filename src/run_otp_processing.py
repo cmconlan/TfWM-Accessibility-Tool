@@ -7,7 +7,6 @@ import multiprocessing
 import logging
 import argparse
 import numpy as np
-import progressbar as pb
 from modeling import open_trip_planner as otp
 
 
@@ -200,7 +199,6 @@ def cleanup(complete_files):
 
 
 if __name__ == '__main__':
-    progressbar.streams.wrap_stderr()
     logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     settings.load()
     args = parse_input_args()
