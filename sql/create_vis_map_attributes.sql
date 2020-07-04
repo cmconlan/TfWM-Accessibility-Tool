@@ -1,11 +1,11 @@
-DROP TABLE IF EXISTS vis.map_attributes{suffix};
+DROP TABLE IF EXISTS vis.map_attributes;
 
-CREATE TABLE vis.map_attributes{suffix} AS(
+CREATE TABLE vis.map_attributes AS(
     WITH array_table AS(
 	SELECT trip_id,
 	        ARRAY{metric_arr} AS metric_arr,
             ARRAY{value_arr} AS value_arr
-	FROM results.trips{suffix}
+	FROM results.trips
 	ORDER BY trip_id
     ),
 
@@ -19,9 +19,9 @@ CREATE TABLE vis.map_attributes{suffix} AS(
     full_res AS(
         SELECT r.*, m.oa_id, m.poi_id, p.poi_type, t.stratum
         FROM long_res r
-        INNER JOIN model.trips{suffix} m USING (trip_ID)
-        INNER JOIN model.timestamps{suffix} t USING (date, time)
-        INNER JOIN model.k_poi{suffix} p USING (oa_id, poi_id)
+        INNER JOIN model.trips m USING (trip_ID)
+        INNER JOIN model.timestamps t USING (date, time)
+        INNER JOIN model.k_poi p USING (oa_id, poi_id)
     ),
 
     median AS(
@@ -49,5 +49,5 @@ CREATE TABLE vis.map_attributes{suffix} AS(
     GROUP BY oa_id, poi_type, stratum, metric
 );
 
-UPDATE vis.map_attributes{suffix} SET value=value/60
+UPDATE vis.map_attributes SET value=value/60
     WHERE metric in {metrics_in_second};

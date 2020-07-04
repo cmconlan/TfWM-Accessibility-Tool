@@ -1,6 +1,6 @@
-DROP TABLE if exists model.trips{suffix};
+DROP TABLE if exists model.trips;
 
-CREATE TABLE model.trips{suffix} AS (
+CREATE TABLE model.trips AS (
     SELECT
         row_number() over () as trip_id,
         oa_id,
@@ -10,12 +10,12 @@ CREATE TABLE model.trips{suffix} AS (
         date,
         time,
         0 AS computed
-    FROM model.k_poi{suffix}
-    CROSS JOIN model.timestamps{suffix}
+    FROM model.k_poi
+    CROSS JOIN model.timestamps
 );
 
-ALTER TABLE model.trips{suffix} ADD PRIMARY KEY (trip_id);
+ALTER TABLE model.trips ADD PRIMARY KEY (trip_id);
 
-CREATE INDEX IF NOT EXISTS trip_id_idx{suffix} on model.trips{suffix}(trip_id);
-CREATE INDEX IF NOT EXISTS oa_id_idx{suffix} on model.trips{suffix}(oa_id);
-CREATE INDEX IF NOT EXISTS poi_id_idx{suffix} on model.trips{suffix}(poi_id);
+CREATE INDEX IF NOT EXISTS trip_id_idx on model.trips(trip_id);
+CREATE INDEX IF NOT EXISTS oa_id_idx on model.trips(oa_id);
+CREATE INDEX IF NOT EXISTS poi_id_idx on model.trips(poi_id);

@@ -1,13 +1,13 @@
-DROP TABLE if exists model.trips{suffix}_new;
-CREATE TABLE model.trips{suffix}_new AS (
+DROP TABLE if exists model.trips_new;
+CREATE TABLE model.trips_new AS (
 WITH appended AS (
     SELECT trip_id, oa_id, poi_id, date, time, computed
-    FROM model.trips{suffix}
+    FROM model.trips
     UNION ALL
     SELECT
     	NULL AS trip_id, oa_id, poi_id, date, time, 0 AS computed
-    FROM model.k_poi{suffix}
-    CROSS JOIN model.timestamps{suffix}
+    FROM model.k_poi
+    CROSS JOIN model.timestamps
 ),
   cleaned AS (
     SELECT DISTINCT
@@ -33,10 +33,10 @@ SELECT
 FROM cleaned
 );
 
-DROP TABLE if exists model.trips{suffix};
-ALTER TABLE model.trips{suffix}_new RENAME TO trips{suffix};
-ALTER TABLE model.trips{suffix} ADD PRIMARY KEY (trip_id);
+DROP TABLE if exists model.trips;
+ALTER TABLE model.trips_new RENAME TO trips;
+ALTER TABLE model.trips ADD PRIMARY KEY (trip_id);
 
-CREATE INDEX IF NOT EXISTS trip_id_idx{suffix} on model.trips{suffix}(trip_id);
-CREATE INDEX IF NOT EXISTS oa_id_idx{suffix} on model.trips{suffix}(oa_id);
-CREATE INDEX IF NOT EXISTS poi_id_idx{suffix} on model.trips{suffix}(poi_id);
+CREATE INDEX IF NOT EXISTS trip_id_idx on model.trips(trip_id);
+CREATE INDEX IF NOT EXISTS oa_id_idx on model.trips(oa_id);
+CREATE INDEX IF NOT EXISTS poi_id_idx on model.trips(poi_id);

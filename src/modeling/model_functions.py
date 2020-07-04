@@ -14,7 +14,7 @@ from random import seed, sample
 from datetime import datetime, timedelta
 
 
-def create_timestamps(time_defs, time_strata, n_timepoints, engine, suffix, rseed = 999):
+def create_timestamps(time_defs, time_strata, n_timepoints, engine, rseed = 999):
     """
     Sample time points from strata (time segments) and write to MODEL.timestamps
     Example:
@@ -42,9 +42,6 @@ def create_timestamps(time_defs, time_strata, n_timepoints, engine, suffix, rsee
         Default number of samples for each stratum, if specified
     
     engine : a SQLAlchemy engine object
-
-    suffix : str
-        suffix (if any) to append to name 'MODEL.timestamps'
 
     rseed : int
         Random seed for random sampling
@@ -99,11 +96,11 @@ def create_timestamps(time_defs, time_strata, n_timepoints, engine, suffix, rsee
             timestamps.append(ts_dict)
 
     df = pd.DataFrame(timestamps)
-    df.to_sql(f'timestamps{suffix}', engine, schema='model', index=False, if_exists='replace')
-    logger.debug(f'Sampled timestamps saved to model.timestamps{suffix}')
+    df.to_sql(f'timestamps', engine, schema='model', index=False, if_exists='replace')
+    logger.debug(f'Sampled timestamps saved to model.timestamps')
 
     
-def create_k_poi(sql_dir, k_poi, poi_dict, engine, suffix):
+def create_k_poi(sql_dir, k_poi, poi_dict, engine):
     """
     For each OA and each type of point of interest (POI), select K nearest spots (by aerial distance) and write the
     results to MODEL.k_poi
@@ -123,9 +120,6 @@ def create_k_poi(sql_dir, k_poi, poi_dict, engine, suffix):
             Hospital: 3
             Job Centre:
     engine: SQLAlchemy engine object
-    
-    suffix : str
-        Suffix to append to name 'MODEL.K_poi' as the table name
 
     Returns
     ----------
@@ -136,11 +130,12 @@ def create_k_poi(sql_dir, k_poi, poi_dict, engine, suffix):
     poi_types = list(poi_dict.keys())
     poi_Ks = [poi_dict[poi] or k_poi for poi in poi_dict]
 
-    params = {'poi_types': str(poi_types), 'poi_Ks': str(poi_Ks), 'suffix': suffix}
+    params = {'poi_types': str(poi_types), 'poi_Ks': str(poi_Ks)}
     execute_sql(sql_file, engine, read_file=True, params=params)
-    logging.getLogger('root').debug(f'K nearest POIs saved to model.k_poi{suffix}')
+    logging.getLogger('root').debug(f'K nearest POIs saved to model.k_poi')
 
-def create_trips(sql_dir, engine, suffix, mode='replace'):
+
+def create_trips(sql_dir, engine, mode='replace'):
     """
     Configure trip info for each OTP query and save to MODEL.trips
 
@@ -151,8 +146,8 @@ def create_trips(sql_dir, engine, suffix, mode='replace'):
 
     engine: a SQLAlchemy engine object
     
-    suffix : str
-        Suffix to append to name 'MODEL.trips' as the table name
+     : str
+         to append to name 'MODEL.trips' as the table name
 
     mode : str
         If 'replace', overwrite existing MODEL.trips; if 'append', append to that existing table
@@ -166,11 +161,11 @@ def create_trips(sql_dir, engine, suffix, mode='replace'):
         sql_file = os.path.join(sql_dir, 'create_model_trips.sql')
     if mode == 'append':
         sql_file = os.path.join(sql_dir, 'append_model_trips.sql')
-    params = {'suffix': suffix}
-    execute_sql(sql_file, engine, params=params, read_file=True)
-    logging.getLogger('root').debug(f'Trips info saved to MODEL.trips{suffix}')
+    execute_sql(sql_file, engine, read_file=True)
+    logging.getLogger('root').debug(f'Trips info saved to MODEL.trips')
     
-def create_otp_trips(sql_dir, engine, suffix, mode='replace'):
+    
+def create_otp_trips(sql_dir, engine, mode='replace'):
     """
     Create dataset to be read into OTP tool
 
@@ -180,9 +175,6 @@ def create_otp_trips(sql_dir, engine, suffix, mode='replace'):
         Directory that stores create_model_trips.sql and append_model_trips.sql
 
     engine: a SQLAlchemy engine object
-    
-    suffix : str
-        Suffix to append to name 'MODEL.trips' as the table name
 
     mode : str
         If 'replace', overwrite existing MODEL.trips; if 'append', append to that existing table
@@ -193,9 +185,8 @@ def create_otp_trips(sql_dir, engine, suffix, mode='replace'):
     """
 
     sql_file = os.path.join(sql_dir, 'create_model_otp_trips.sql')
-    params = {'suffix': suffix}
-    execute_sql(sql_file, engine, params=params, read_file=True)
-    print(f'Trips info saved to MODEL.otp_trips{suffix}')
+    execute_sql(sql_file, engine, read_file=True)
+    logging.getLogger('root').debug(f'Trips info saved to MODEL.otp_trips')
 
 
 def compute_populations(sql_dir, populations, engine):
@@ -236,7 +227,7 @@ def compute_populations(sql_dir, populations, engine):
     pop_list = list(populations.keys())
     # get the right column aggregation string for each population
     # e.g. 'COALESCE(disability_severe)+COALESCE(disability_moderate) as disabled'
-    for pop in pop_list:
+    for pop in pb.progressbar(pop_list):
         cols = [f"COALESCE({col}, 0)" for col in populations[pop]]
         pop_col_defs.append('+'.join(cols) + ' as ' + pop)
     # join the strings
@@ -247,4 +238,4 @@ def compute_populations(sql_dir, populations, engine):
 
     sql_file = os.path.join(sql_dir, 'create_results_populations.sql')
     execute_sql(sql_file, engine, read_file=True, params=params)
-    print('OA-level demographics saved to RESULTS.populations')
+    logging.getLogger('root').debug('OA-level demographics saved to RESULTS.populations')
