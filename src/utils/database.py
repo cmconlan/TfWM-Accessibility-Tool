@@ -8,7 +8,6 @@ import settings
 import subprocess
 import pandas as pd
 import sqlalchemy as db
-import progressbar as pb
 from pathlib import Path
 
 class Database:
@@ -81,6 +80,30 @@ class Database:
         finally:
             conn.close()
     
+    def _run_subprocess(self, command: str):
+        logger = logging.getLogger('root')
+        try:
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                text=True
+            ) 
+            with process.stdout as pipe:
+                for line in pipe:
+                    logger.info(line.rstrip())
+            exit_code = process.wait()
+            if exit_code != 0:
+                raise subprocess.SubprocessError
+        except subprocess.SubprocessError as e:
+            logger.error(
+                'The following subprocess failed. Check logs for details.\n' 
+                 + command
+            )
+            logger.debug(e)
+            exit(1)
+
     def load_shp_to_db(self, src_dir, dst_table):
         """
         Load shapefiles to database
@@ -112,8 +135,7 @@ class Database:
                     # Using shell=True is bad, but will have to do while 
                     # command-line utilities for PostGIS are only available
                     # from system PATH
-                    command_output = subprocess.check_output(command, shell=True, text=True)
-                    logger.debug(command_output)
+                    self._run_subprocess(command)
 
     def load_osm_to_db(self, DATA_DIR, src_file, sql_file):
         """
@@ -143,21 +165,8 @@ class Database:
             f" -U {self._credentials['user']} {src_file}"
         )
         logger.info(f"Uploading file {src_file} using osm2pgsql")
-        try:
-            osm_porcess =  subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                shell=True,
-                text=True
-            )
-            with osm_porcess.stdout as pipe:
-                for line in iter(pipe.readline):
-                    logger.info(line)
-        except subprocess.SubprocessError as e:
-            logger.error('osm2pgsql failed. Check logs for details.')
-            logger.debug(e)
-            exit(1)
+        self._run_subprocess(command)       
+       
         # Rename the files and move to RAW schema
         self.execute_sql(sql_file, read_file=True)
 
@@ -177,7 +186,7 @@ class Database:
         -------
         None
         """
-        for textfile in pb.progressbar(data_dict.keys()):
+        for textfile in data_dict.keys():
 
             infile = os.path.join(DATA_DIR, textfile)
             outtable = 'raw.' + data_dict[textfile]
