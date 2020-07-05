@@ -83,6 +83,9 @@ class Database:
     def _run_subprocess(self, command: str):
         logger = logging.getLogger('root')
         try:
+            # Using shell=True is bad, but will have to do while 
+            # command-line utilities for PostGIS are only available
+            # from system PATH
             process = subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
@@ -132,9 +135,7 @@ class Database:
                         f" | psql -q -U {self._credentials['user']} -d {self._credentials['dbname']}"
                     )
                     logger.info(f"Uploading {shapefile}")
-                    # Using shell=True is bad, but will have to do while 
-                    # command-line utilities for PostGIS are only available
-                    # from system PATH
+
                     self._run_subprocess(command)
 
     def load_osm_to_db(self, DATA_DIR, src_file, sql_file):
