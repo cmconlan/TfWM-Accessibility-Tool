@@ -52,7 +52,7 @@ def configure_logger():
 
     logger = logging.getLogger('root')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('./log/etl_and_model.log')
+    fh = logging.FileHandler('./etl_and_model.log')
     fh.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
