@@ -200,7 +200,6 @@ def cleanup(complete_files):
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
-    settings.load()
     args = parse_input_args()
     # Input CSV MUST HAVE HEADERS - these are included by default by the ETL process
     input_csv = args['file']

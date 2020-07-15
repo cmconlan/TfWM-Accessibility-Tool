@@ -1,12 +1,11 @@
 from dotenv import load_dotenv, find_dotenv
 import os
+import logging
+import progressbar
 
-
-def load():
-    # DotEnv starts searching at / for some reason, therefore need to keep 
-    # .env relative to settings.py
-    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
-
+# DotEnv starts searching at / for some reason, therefore need to keep 
+# .env relative to settings.py
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 def get_psql():
     PSQL_HOST = os.environ['PSQL_HOST']
@@ -14,7 +13,6 @@ def get_psql():
     PSQL_USER = os.environ['PSQL_USER']
     PSQL_PASSWORD = os.environ['PSQL_PASSWORD']
     PSQL_PORT = os.environ['PSQL_PORT']
-    
     psql_credentials = {
         'host': PSQL_HOST,
         'dbname': PSQL_DB,
@@ -22,7 +20,6 @@ def get_psql():
         'password': PSQL_PASSWORD,
         'port': PSQL_PORT
     }
-    
     return psql_credentials
 
 
@@ -44,5 +41,30 @@ def get_sqlite_settings():
     return PATH
 
 
-def get_environemnt_variable(var: str) -> str:
+def get_environment_variable(var: str) -> str:
     return os.environ[var]
+
+
+def configure_logger():
+    # Make sure to redirect stderr for the progress bar
+    # before instantiating the logger.
+    progressbar.streams.wrap_stderr()
+
+    logger = logging.getLogger('root')
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler('./etl_and_model.log')
+    fh.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        fmt='%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%H:%M:%S:'
+    )
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    # Don't necessarily have to return the logger
+    # as its available globally from the logging module,
+    # but this saves having to write logging.getLogger()
+    return logger

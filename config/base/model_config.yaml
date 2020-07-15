@@ -121,11 +121,3 @@ time_strata:
 hyper_params:
   n_timepoint: 30
   k_POI: 3
-
-## Metrics Returned
-# (all are parsed from XML in split_trips bc no cost, but this determines which are written
-# to vis.map_attributes as unnecessary metrics at that stage make the dash load slowly
-metrics:
-  - total_time
-  - walk_dist
-  - fare

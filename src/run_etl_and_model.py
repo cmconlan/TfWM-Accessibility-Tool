@@ -1,106 +1,105 @@
 
 import os
+import logging
 import settings
-from etl.load_raw import load_data_dict, load_text, load_gis, load_osm
+import progressbar as pb
 from modeling import model_functions
-from utils import *
+from utils.utils import load_yaml, load_data_dict
+from utils.database import Database
 
-#%%
-suffix=''
-mode='replace'
-settings.load()
+STEPS = 13
+steps_iter = iter(range(1, STEPS+1))
+logger = settings.configure_logger()
 ROOT_FOLDER = settings.get_root_dir()
 DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data/')
 SQL_FOLDER = os.path.join(ROOT_FOLDER, 'sql/')
 RESULTS_FOLDER = os.path.join(ROOT_FOLDER, 'results/')
-
-# Data files to be loaded
 data_config = os.path.join(ROOT_FOLDER, 'config/base/data_files.yaml')
 
-#%%
-# Get PostgreSQL database credentials 
-psql_credentials = settings.get_psql()
 
-# Create SQLAlchemy engine from database credentials
-engine = create_connection_from_dict(psql_credentials, 'postgresql')
+database = Database.get_instance()
 
-#%%
+with pb.ProgressBar(max_value=13) as bar:
+    logger.info("Creating schemas")
+    database.execute_sql(
+        os.path.join(SQL_FOLDER,'create_schemas.sql'),
+        read_file=True
+    )
+    bar.update(next(steps_iter))
 
-print("Creating schemas")
-execute_sql(os.path.join(SQL_FOLDER,'create_schemas.sql'), engine, read_file=True)
+    logger.info("Creating tables")
+    database.execute_sql(
+        os.path.join(SQL_FOLDER, 'create_tables.sql'),
+        read_file=True
+    )
+    bar.update(next(steps_iter))
 
-#%%
+    text_dict, gis_dict, osm_file = load_data_dict(data_config)
+    bar.update(next(steps_iter))
 
-## ---- CREATE TABLES WITHIN RAW SCHEMA ----
-print("Creating tables")
-execute_sql(os.path.join(SQL_FOLDER, 'create_tables.sql'), engine, read_file=True)
+    logger.info("Loading text files to RAW")
+    database.load_text(DATA_FOLDER, text_dict)
+    bar.update(next(steps_iter))
 
-#%%
+    logger.info("Loading shapefiles to GIS")
+    database.load_gis(DATA_FOLDER, gis_dict)
+    bar.update(next(steps_iter))
 
-## ---- LOAD RAW DATA TO DATABASE ----
-text_dict, gis_dict, osm_file = load_data_dict(data_config)
+    logger.info("Loading OSM data to RAW")
+    database.load_osm_to_db(
+        DATA_FOLDER, 
+        osm_file, 
+        os.path.join(SQL_FOLDER, 'update_osm_tables.sql'), 
+    )
+    bar.update(next(steps_iter))
 
-#%%
+    logger.info("Cleaning data")
+    database.execute_sql(
+        os.path.join(SQL_FOLDER, 'clean_data.sql'), 
+        read_file=True
+    )
+    bar.update(next(steps_iter))
 
-# Load CSV file to RAW schema
-print("Loading text files to RAW")
-load_text(DATA_FOLDER, text_dict, engine)
+    logger.info("Entitizing data")
+    database.execute_sql(
+        os.path.join(SQL_FOLDER, 'create_semantic.sql'),
+        read_file=True
+    )
+    bar.update(next(steps_iter))
 
-#%%
+    model_config = os.path.join(ROOT_FOLDER, 'config/base/model_config.yaml')
+    params = load_yaml(model_config)
+    hyper_params = params['hyper_params']
+    logger.info('Model parameters loaded')
+    bar.update(next(steps_iter))
 
-# Load GIS data to GIS schema
-print("Loading shapefiles to GIS")
-load_gis(DATA_FOLDER, gis_dict, psql_credentials)
+    logger.info('Creating timestamps')
+    model_functions.create_timestamps(
+        params['time_defs'], 
+        params['time_strata'], 
+        n_timepoints=hyper_params['n_timepoint'],
+    )
+    bar.update(next(steps_iter))
 
-# Load OSM data to RAW schema
-print("Loading OSM data to RAW")
-load_osm(DATA_FOLDER, osm_file, psql_credentials, os.path.join(SQL_FOLDER, 'update_osm_tables.sql'), engine)
+    logger.info('Selecting K nearest Points of Interest for each OA')
+    model_functions.create_k_poi(
+        SQL_FOLDER, 
+        k_poi=hyper_params['k_POI'],
+        poi_dict=params['points_of_interest'],
+    )
+    bar.update(next(steps_iter))
 
-## ---- CLEAN DATA TO CLEANED SCHEMA ----
-print("Cleaning data")
-execute_sql(os.path.join(SQL_FOLDER, 'clean_data.sql'), engine, read_file=True)
+    logger.info('Creating possible combinations of trips for OTP input')
+    model_functions.create_trips(SQL_FOLDER)
+    database.execute_sql(
+        os.path.join(SQL_FOLDER, 'create_model_otp_trips.sql'), 
+        read_file=True
+    )
+    bar.update(next(steps_iter))
 
-## ---- ENTITIZE DATA TO SEMANTIC SCHEMA ----
-print("Entitizing data")
-execute_sql(os.path.join(SQL_FOLDER, 'create_semantic.sql'), engine, read_file=True)
-
-#%%
-
-# Load model configuration
-model_config = os.path.join(ROOT_FOLDER, 'config/base/model_config.yaml')
-print('Configure models')
-params = load_yaml(model_config)
-population_dict = params.get('populations')
-poi_dict = params.get('points_of_interest')
-time_defs = params.get('time_defs')
-time_strata = params.get('time_strata')
-hyper_params = params.get('hyper_params')
-metrics = params.get('metrics')
-print('Model parameters loaded')
-
-
-# Sample timestamps and write to MODEL.timestamps
-model_functions.create_timestamps(time_defs, time_strata, n_timepoints=hyper_params.get('n_timepoint'), engine=engine, suffix=suffix)
-
-# Generate MODEL.k_poi (K-nearest POIs)
-model_functions.create_k_poi(SQL_FOLDER, k_poi=hyper_params.get('k_POI'), poi_dict=poi_dict, suffix=suffix, engine=engine)
-
-# Configure OTP query parameters and save to MODEL.trips
-model_functions.create_trips(SQL_FOLDER, suffix=suffix, engine=engine, mode=mode)
-
-# Generate RESULTS.populations
-model_functions.compute_populations(SQL_FOLDER, population_dict, engine)
-
-#create otp trips
-execute_sql(os.path.join(SQL_FOLDER,'create_model_otp_trips.sql'), engine, read_file=True)
-
-# Write OTP trips to CSV
-conn = engine.raw_connection()
-try:
-    cursor = conn.cursor()
-    copy_statement = f"COPY (SELECT * FROM model.otp_trips) TO STDOUT WITH CSV HEADER"
-    with open(os.path.join(RESULTS_FOLDER, 'otp_trips.csv'), 'w') as csv_file:
-        cursor.copy_expert(copy_statement, csv_file)
-    cursor.close()
-finally:
-    conn.close()
+    file_name = 'otp_trips'
+    logger.info(f'Storing model.{file_name} to {file_name}.csv')
+    database.copy_table_to_csv(
+        f'model.{file_name}',
+        os.path.join(RESULTS_FOLDER, f'{file_name}.csv'),
+    )

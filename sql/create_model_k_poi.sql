@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS model.k_poi{suffix};
+DROP TABLE IF EXISTS model.k_poi;
 
-CREATE TABLE IF NOT EXISTS model.k_poi{suffix} AS (
+CREATE TABLE IF NOT EXISTS model.k_poi AS (
 
     WITH poi AS (
         SELECT

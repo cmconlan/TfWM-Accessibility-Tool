@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS results.trips{suffix};
-CREATE TABLE IF NOT EXISTS results.trips{suffix} (
+DROP TABLE IF EXISTS results.trips;
+CREATE TABLE IF NOT EXISTS results.trips (
     trip_id int,
 	poi_type varchar,
 	strata varchar,
@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS results.trips{suffix} (
 );
 
 DROP INDEX if exists trip_id_idx;
-CREATE INDEX if not exists trip_id_idx on results.trips{suffix}(trip_id);
+CREATE INDEX if not exists trip_id_idx on results.trips(trip_id);
