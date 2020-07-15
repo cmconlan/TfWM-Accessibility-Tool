@@ -64,12 +64,12 @@ def get_otp_response(host_url, input_row) -> tuple:
 def print_progress_message(process_id:int, row_counter: int):
     rows_complete.value += row_counter
     logging.info((
-        f'{(rows_complete.value/num_trips * 100):.2f}% '
-        f'Process {process_id} has completed {row_counter} rows.'
+        f'Process {process_id} has completed {row_counter} rows. '
+        f'{(rows_complete.value/num_trips * 100):.2f}% complete'
     ))
 
 
-def compute_trips(host_url: str, offset: int, limit: int, input_file: str, output_dir: str) -> str:
+def compute_trips(host_url: str, offset: int, limit: int, input_file: str, output_dir: str) -> (str, int):
     """
     Send a request to OTP, parse the response and write a line to the output file.
     Note: Parallel processing begins and ends here - each Python process will run this
@@ -162,7 +162,7 @@ def split_trips(input_file: str, output_dir: str) -> None:
         files.append(f)
         bad_rows += rows
     if bad_rows > 0:
-        logging.warning(f"{bad_rows} rows were lost during OTP processing ({(bad_rows/num_trips * 100):.2f}%).")
+        logging.warning(f"{bad_rows} trips were lost during OTP processing ({(bad_rows/num_trips * 100):.2f}%).")
     return files
 
 
