@@ -1039,6 +1039,88 @@ WHERE
    oa11cd = 'E00048944';
 
 
+
+
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.521069,
+    longitude = -1.862242
+WHERE
+   oa11cd = 'E00047007';
+   
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.589369,
+    longitude = -1.54887284466298
+WHERE
+   oa11cd = 'E00047682';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.568325,
+    longitude = -1.822736
+WHERE
+   oa11cd = 'E00047754';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.558186,
+    longitude = -1.782829
+WHERE
+   oa11cd = 'E00047803';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.434467,
+    longitude = -1.783618
+WHERE
+   oa11cd = 'E00051227';
+   
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.443632,
+    longitude = -1.770573
+WHERE
+   oa11cd = 'E00051246';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.398016,
+    longitude = -1.654745
+WHERE
+   oa11cd = 'E00051391';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.410126,
+    longitude = -1.637554
+WHERE
+   oa11cd = 'E00051410';
+   
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.402661,
+    longitude = -1.647222
+WHERE
+   oa11cd = 'E00051411';   
+   
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.429027,
+    longitude = -1.775174
+WHERE
+   oa11cd = 'E00051685';   
+   
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.626638,
+    longitude = -1.982637
+WHERE
+   oa11cd = 'E00052287';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.475127,
+    longitude = -1.909593
+WHERE
+   oa11cd = 'E00175638';
+
+UPDATE cleaned.oa_boundaries_wm_snapped
+SET latitude = 52.47589,
+    longitude = -1.91103
+WHERE
+   oa11cd = 'E00175647';
+   
+
 -- Adjust location of schools that aren't on a connected road
 UPDATE cleaned.ukgov_schools_wm_snapped
 SET latitude = 52.5678003490819,
