@@ -2,7 +2,7 @@ import os
 import argparse
 import pandas as pd
 import sqlalchemy as db
-from settings import load, get_sqlite_settings
+from settings import load_dotenv, get_sqlite_settings
 
 DEFAULT_CHUNK_SIZE = 10000                  # How many rows to load per df chunk
 SUMMARY_TABLE_NAME = 'otp_results_summary'  # Name of table where OTP results are summarised
@@ -26,7 +26,7 @@ def check_input_file_exists(file_name: str) -> None:
 
 
 def create_db_connection() -> db.engine.Engine:
-    load() # Load the seetings
+    load_dotenv() # Load the seetings
     path = get_sqlite_settings()
     return db.create_engine(f'sqlite:///{path}')
 
