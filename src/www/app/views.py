@@ -2,8 +2,8 @@ import os
 import json
 import re
 from app import app
-from flask import jsonify, request, make_response
-from app.utils import execute_query, get_key_value_pairs, remove_common_prefix, calculate_access_metric
+from flask import abort, jsonify, request, make_response
+from app.utils import execute_query, get_key_value_pairs, remove_common_prefix, calculate_access_metric, calculate_high_level_metrics, calculate_demographic_level_metrics
 from app.utils import  population_density, at_risk_scores, get_json, add_rank
 
 
@@ -73,8 +73,16 @@ def accessibility_metrics():
     access_metric = request.args.get('accessibility-metric', 'generalised_cost')
     poi_types = request.args.getlist('point-of-interest-types')
     time_strata = request.args.getlist('time-strata')
+
     access_metrics = calculate_access_metric(access_metric, poi_types, time_strata)
-    if 'error' in access_metrics:
-        return make_response(access_metrics, 404)
-    else:
-        return jsonify(add_rank(access_metrics))
+    high_level_metrics = calculate_high_level_metrics(access_metric, poi_types, time_strata)
+    demographic_level_metrics = calculate_demographic_level_metrics(access_metric, poi_types, time_strata)
+
+    if 'error' in access_metrics or 'error' in high_level_metrics:
+        return abort(404)
+
+    return jsonify({
+        'high-level': high_level_metrics,
+        'oa-level': add_rank(access_metrics),
+        'demographic-level': demographic_level_metrics,
+    })

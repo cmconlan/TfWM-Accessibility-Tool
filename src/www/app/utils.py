@@ -2,6 +2,7 @@ from functools import reduce
 from app import app, db
 from sqlalchemy import text, exc
 from flask import jsonify
+import math
 
 
 def execute_query(sql_string, args=None):
@@ -210,19 +211,17 @@ def at_risk_scores(demographics, poi_types, time_strata):
     return at_risk_score
 
 
-def calculate_access_metric(access_metric, poi_types, time_strata):
+def construct_access_metric_where_clause(poi_types, time_strata):
     """
-    Calculate an accessibility metric (journey time, walking distance, fare, generalised access score)
-    for OAs given point-of-interest (POI) type(s) and time strata/stratum.
+    Construct a WHERE clause for use querying the otp_results_summary table
+    for any given point-of-interest (POI) type(s) and time strata/stratum.
     
     Parameters:
-    access_metric (str): The accessibility metric to calculate.
     poi_types (list): List of POI types as strings.
     time_strata (list): List of Time Strata as strings.
 
     Returns:
-    dict: A dictionary keyed by OA ID, with the value being the accessibility metric.
-          Will return 404 if the access metric supplied doesn't exist in the database
+    str: a string containing a where clause to be used in a otp_results_summary query
     """
     where_clause = ''
     if poi_types or time_strata:
@@ -238,9 +237,28 @@ def calculate_access_metric(access_metric, poi_types, time_strata):
             where_clause += f'{poi_str} AND {strata_str}'
         else:
             where_clause += poi_str + strata_str
+
+    return where_clause
+
+
+def calculate_access_metric(access_metric, poi_types, time_strata):
+    """
+    Calculate an accessibility metric (journey time, walking distance, fare, generalised access score)
+    for OAs given point-of-interest (POI) type(s) and time strata/stratum.
     
+    Parameters:
+    access_metric (str): The accessibility metric to calculate.
+    poi_types (list): List of POI types as strings.
+    time_strata (list): List of Time Strata as strings.
+
+    Returns:
+    dict: A dictionary keyed by OA ID, with the value being the accessibility metric.
+          Will return 404 if the access metric supplied doesn't exist in the database
+    """
+    where_clause = construct_access_metric_where_clause(poi_types, time_strata)
+
     query = (f"SELECT oa_id, sum(sum_{access_metric}) / sum(num_trips) "
-            f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
+             f"FROM otp_results_summary {where_clause} GROUP BY oa_id")
     args = poi_types + time_strata
 
     try:
@@ -250,6 +268,104 @@ def calculate_access_metric(access_metric, poi_types, time_strata):
         return {'error': 'Not found'}
 
     return get_metrics(results)
+
+
+def calculate_high_level_metrics(access_metric, poi_types, time_strata):
+    """
+    Calculate a high level accessibility metric (journey time, walking distance, fare, generalised access score)
+    for all OAs given point-of-interest (POI) type(s) and time strata/stratum.
+    
+    Parameters:
+    access_metric (str): The accessibility metric to calculate.
+    poi_types (list): List of POI types as strings.
+    time_strata (list): List of Time Strata as strings.
+
+    Returns:
+    dict: A dictionary keyed by metric type, with the value being the value of the metric.
+          Will return a dict with the key 'error' if the access metric supplied doesn't exist in the database
+    """
+    where_clause = construct_access_metric_where_clause(poi_types, time_strata)
+    args = poi_types + time_strata
+
+    try:
+        query = (f"SELECT sum(sum_{access_metric}) as summation_a, \
+                   sum(sum_of_squared_{access_metric}) as summation_of_squared_a, \
+                   sum(num_trips) as n \
+                   FROM otp_results_summary {where_clause}")
+        i_vals = get_metric_with_fields(execute_query(query, args))  # (i_vals = intermediate values)
+
+        mean = i_vals['summation_a'] / i_vals['n']
+        return {
+            'Mean': mean,
+            'Variance': math.sqrt((i_vals['summation_of_squared_a'] - 2 * mean * i_vals['summation_a'] + i_vals['n'] * (mean ** 2)) / (i_vals['n'] - 1)),
+            'Jains Index': (i_vals['summation_a'] ** 2) / (i_vals['n'] * i_vals['summation_of_squared_a'])
+        }
+    except exc.SQLAlchemyError as err:
+        print(err)
+        return {'error': f"High level metric calculation error: {err}"}
+
+
+def calculate_demographic_level_metrics(access_metric, poi_types, time_strata):
+    """
+    Calculate a demographic level accessibility metrics (journey time, walking distance, fare, generalised access score)
+    for all demographics given point-of-interest (POI) type(s) and time strata/stratum.
+    
+    Parameters:
+    access_metric (str): The accessibility metric to calculate.
+    poi_types (list): List of POI types as strings.
+    time_strata (list): List of Time Strata as strings.
+
+    Returns:
+    dict: A dictionary keyed by demographic, with the value being a dictionary of metrics.
+          Will return a dict with the key 'error' if an error occurs in the calculation
+    """
+    where_clause = construct_access_metric_where_clause(poi_types, time_strata)
+    args = poi_types + time_strata
+
+    try:
+        query = f"SELECT populations.population, \
+                    sum(populations.count) as sum_d, \
+                    sum(stats.sum_of_metric * populations.count) as sum_a_d, \
+                    sum(stats.sum_of_metric * populations.count * stats.sum_of_metric * populations.count) as sum_of_squared_a_d, \
+                    sum(stats.n) as n    \
+                        \
+                FROM(SELECT \
+                        oa_id, \
+                        sum(sum_{access_metric}) / sum(num_trips) as sum_of_metric, \
+                        count(*) as n \
+                        FROM otp_results_summary {where_clause} \
+                        GROUP BY oa_id \
+                    ) stats \
+                        \
+                LEFT JOIN populations \
+                ON populations.oa_id = stats.oa_id \
+                GROUP BY populations.population"
+
+        db_results = execute_query(query, args)
+        fieldNames = db_results.keys()
+        result = {
+            fields[0]: {
+                fieldNames[idx]: field for (idx, field) in enumerate(fields)
+            } 
+            for fields in db_results
+        }
+
+        for demographic in result:
+            i_vals = result[demographic]  # (i_vals = intermediate values)
+            result[demographic] = {
+                'WASS': i_vals['sum_a_d'] / i_vals['sum_d'],
+                'JI': (i_vals['sum_a_d'] ** 2) / (i_vals['n'] * i_vals['sum_of_squared_a_d'])
+            }
+
+        mean = result['total']['WASS']
+        del result['total']
+        for demographic in result:
+            result[demographic]['ARM'] = result[demographic]['WASS'] - mean
+
+        return result
+    except exc.SQLAlchemyError as err:
+        print(err)
+        return {'error': f"High level metric calculation error: {err}"}
 
 
 def construct_in_clause_args(args):
@@ -300,6 +416,21 @@ def get_metrics(db_results):
     dict: A dictionary keyed by OA ID, with the value being the metric value
     """
     return {oa_id: metric for (oa_id, metric) in db_results}
+
+
+def get_metric_with_fields(db_results):
+    """
+    Produce a dict of the form {field: value} from the result of a database query.
+
+    Parameters:
+    db_results (SQLAlchemy.engine.ResultProxy): A ResultProxy (cursor) from SQLAlchemy.
+
+    Returns:
+    dict: A dictionary keyed by the field name from the query, with the value being the first value of the field
+    """
+    fieldNames = db_results.keys()
+    fieldValues = list(db_results)[0]
+    return {fieldNames[i]: fieldValues[i] for i in range(0, len(fieldNames))}
 
 
 def add_rank(metrics):
