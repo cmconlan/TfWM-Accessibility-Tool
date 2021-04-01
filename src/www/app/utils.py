@@ -296,9 +296,9 @@ def calculate_high_level_metrics(access_metric, poi_types, time_strata):
 
         mean = i_vals['summation_a'] / i_vals['n']
         return {
-            'Mean': mean,
-            'Variance': math.sqrt((i_vals['summation_of_squared_a'] - 2 * mean * i_vals['summation_a'] + i_vals['n'] * (mean ** 2)) / (i_vals['n'] - 1)),
-            'Jains Index': (i_vals['summation_a'] ** 2) / (i_vals['n'] * i_vals['summation_of_squared_a'])
+            'Mean': round(mean, 2),
+            'Variance': round(math.sqrt((i_vals['summation_of_squared_a'] - 2 * mean * i_vals['summation_a'] + i_vals['n'] * (mean ** 2)) / (i_vals['n'] - 1)), 2),
+            'Jains Index': round((i_vals['summation_a'] ** 2) / (i_vals['n'] * i_vals['summation_of_squared_a']), 3)
         }
     except exc.SQLAlchemyError as err:
         print(err)
@@ -345,7 +345,7 @@ def calculate_demographic_level_metrics(access_metric, poi_types, time_strata):
         fieldNames = db_results.keys()
         result = {
             fields[0]: {
-                fieldNames[idx]: field for (idx, field) in enumerate(fields)
+                list(fieldNames)[idx]: field for (idx, field) in enumerate(fields)
             } 
             for fields in db_results
         }
@@ -353,14 +353,14 @@ def calculate_demographic_level_metrics(access_metric, poi_types, time_strata):
         for demographic in result:
             i_vals = result[demographic]  # (i_vals = intermediate values)
             result[demographic] = {
-                'WASS': i_vals['sum_a_d'] / i_vals['sum_d'],
-                'JI': (i_vals['sum_a_d'] ** 2) / (i_vals['n'] * i_vals['sum_of_squared_a_d'])
+                'WASS': round(i_vals['sum_a_d'] / i_vals['sum_d'], 2),
+                'JI': round((i_vals['sum_a_d'] ** 2) / (i_vals['n'] * i_vals['sum_of_squared_a_d']), 3)
             }
 
         mean = result['total']['WASS']
         del result['total']
         for demographic in result:
-            result[demographic]['ARM'] = result[demographic]['WASS'] - mean
+            result[demographic]['ARM'] = round(result[demographic]['WASS'] - mean, 2)
 
         return result
     except exc.SQLAlchemyError as err:
@@ -430,7 +430,7 @@ def get_metric_with_fields(db_results):
     """
     fieldNames = db_results.keys()
     fieldValues = list(db_results)[0]
-    return {fieldNames[i]: fieldValues[i] for i in range(0, len(fieldNames))}
+    return {list(fieldNames)[i]: fieldValues[i] for i in range(0, len(fieldNames))}
 
 
 def add_rank(metrics):
