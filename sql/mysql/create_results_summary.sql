@@ -6,9 +6,13 @@ SELECT
     stratum,
     count(*) as num_trips,
     sum(total_time) as sum_journey_time,
+    sum(total_time * total_time) as sum_of_squared_journey_time,
     sum(walk_dist) as sum_walking_distance,
+    sum(walk_dist * walk_dist) as sum_of_squared_walking_distance,
     sum(fare) as sum_fare,
-    sum(generalised_cost) as sum_generalised_cost
+    sum(fare * fare) as sum_of_squared_fare,
+    sum(generalised_cost) as sum_generalised_cost,
+    sum(generalised_cost * generalised_cost) as sum_of_squared_generalised_cost
 FROM 
     (
         SELECT 
