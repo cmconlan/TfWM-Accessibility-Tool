@@ -354,7 +354,8 @@ def calculate_demographic_level_metrics(access_metric, poi_types, time_strata):
             i_vals = result[demographic]  # (i_vals = intermediate values)
             result[demographic] = {
                 'WASS': round(i_vals['sum_a_d'] / i_vals['sum_d'], 2),
-                'JI': round((i_vals['sum_a_d'] ** 2) / (i_vals['n'] * i_vals['sum_of_squared_a_d']), 3)
+                # TODO: This was giving too low values - is 'n' being counted correctly?
+                # 'JI': round((i_vals['sum_a_d'] ** 2) / (i_vals['n'] * i_vals['sum_of_squared_a_d']), 3)
             }
 
         mean = result['total']['WASS']
