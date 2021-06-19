@@ -7,7 +7,7 @@ from random import seed, sample
 from datetime import datetime, timedelta
 
 
-def create_timestamps(time_defs, time_strata, n_timepoints, rseed = 999):
+def sample_timestamps(time_defs, time_strata, n_timepoints, rseed = 999):
     """
     Sample time points from strata (time segments) and write to MODEL.timestamps
     Example:
@@ -86,6 +86,11 @@ def create_timestamps(time_defs, time_strata, n_timepoints, rseed = 999):
             ts_dict = {'stratum': stratum, 'date': date, 'time': time}
             timestamps.append(ts_dict)
 
+    return timestamps
+
+def create_timestamps(time_defs, time_strata, n_timepoints, rseed = 999):
+    logger = logging.getLogger('root')
+    timestamps = sample_timestamps(time_defs, time_strata, n_timepoints, rseed)
     db = Database.get_instance()
     df = pd.DataFrame(timestamps)
     df.to_sql(f'timestamps', db.engine, schema='model', index=False, if_exists='replace')

@@ -2,9 +2,10 @@ import argparse
 import math
 import random
 import yaml
-import pandas as pd
-from datetime import datetime, timedelta
 from typing import Iterable, Set
+from datetime import datetime, timedelta
+import pandas as pd
+import progressbar as pb
 from sqlalchemy.sql import text
 from www.app import db
 from modeling.open_trip_planner import request_otp, parse_response
@@ -68,10 +69,14 @@ def distance(lat_a: float, lon_a: float, lat_b: float, lon_b: float) -> float:
 
 
 def select_oas(oa_ids: Iterable[str]) -> Set[OA]:
-    oa_strs = { f"'{id}'" for id in oa_ids }
-    sql_string = "SELECT oa_id, oa_lat, oa_lon FROM oa WHERE oa_id IN (" + ",".join(oa_strs) + ")"
-    sql = text(sql_string)
-    oas = db.engine.execute(sql)
+    if not oa_ids:
+        # If OA IDS is empty, select all of them
+        oas = db.engine.execute("SELECT oa_id, oa_lat, oa_lon FROM oa")
+    else:
+        oa_strs = { f"'{id}'" for id in oa_ids }
+        sql_string = "SELECT oa_id, oa_lat, oa_lon FROM oa WHERE oa_id IN (" + ",".join(oa_strs) + ")"
+        sql = text(sql_string)
+        oas = db.engine.execute(sql)
     return { OA(o.oa_id, o.oa_lat, o.oa_lon) for o in oas }
 
 
@@ -99,7 +104,7 @@ def generate_trips(oa_ids: Iterable[str], poi_types: Iterable[str], time_interva
 
 def process_trips(host: str, trips: Set[Trip]):
     results = []
-    for trip in trips:
+    for trip in pb.progressbar(trips):
         response = request_otp(host, trip.to_dict())
         results.append(parse_response(response))
     return results
@@ -109,7 +114,6 @@ if __name__ == "__main__":
     parser.add_argument('otp-url', type=str, help='The URL of the Open Trip Planner Instance e.g http://localhost:8080')
     parser.add_argument('query-params', type=str, help='Path to the YAML file describe the access query parameters')
     args = vars(parser.parse_args())
-
 
     with open(args['query-params']) as yml:
         query_parameters = yaml.safe_load(yml)
@@ -126,7 +130,10 @@ if __name__ == "__main__":
 
     # The google transit feed is currently valid from April 02, 2021 to December 31, 2021
     # so make sure the trips we sample are between those dates
+    print("Generating Trips...")
     trips = generate_trips(oa_ids, poi_types, start_interval, end_interval)
+    print(f"{len(trips)} trips created.")
+    print(f"Sending trips to OTP...")
     results = process_trips(otp_url, trips)
     results_df = pd.DataFrame(results)
     print(results_df)

@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 import settings
 import csv
 import time
@@ -13,7 +14,7 @@ from modeling import open_trip_planner as otp
 def parse_input_args() -> dict:
     '''Parse the input arguments and return a dict keyed by arg names'''
     parser = argparse.ArgumentParser(description='Run OTP to compute routes of each trip in the input file')
-    parser.add_argument('file', type=str, help='Path to pre-computed trpis CSV file. The first row is used for column headers')
+    parser.add_argument('file', type=str, help='Path to pre-computed trips CSV file. The first row is used for column headers')
     args = parser.parse_args()
     return vars(args)
 
@@ -52,8 +53,6 @@ def get_csv_section(reader, offset, limit) -> object:
 
 def get_otp_response(host_url, input_row) -> tuple:
     '''Parse the response from OTP into tuple of values represnting trip attributes'''
-    date = input_row['date']
-    time = input_row['time']
     response = otp.request_otp(host_url, input_row)
     trip = otp.parse_response(response)
     if trip:
@@ -69,7 +68,7 @@ def print_progress_message(process_id:int, row_counter: int):
     ))
 
 
-def compute_trips(host_url: str, offset: int, limit: int, input_file: str, output_dir: str) -> (str, int):
+def compute_trips(host_url: str, offset: int, limit: int, input_file: str, output_dir: str) -> Tuple[str, int]:
     """
     Send a request to OTP, parse the response and write a line to the output file.
     Note: Parallel processing begins and ends here - each Python process will run this

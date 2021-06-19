@@ -15,7 +15,7 @@ class Database:
     _instance = None
 
     @classmethod
-    def get_instance(cls) -> None:
+    def get_instance(cls):
         if Database._instance is None:
             _instance = Database(cls)
         return _instance
@@ -263,4 +263,4 @@ class Database:
             res_df = pd.read_sql_query(query, self.engine, chunksize=chunksize)
             return res_df
         else:  # Not all result objects return rows.
-            self.engine.execute(query)
+            return self.engine.execute(query)

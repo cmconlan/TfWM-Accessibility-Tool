@@ -1,10 +1,10 @@
 import os
 import json
 import re
-from app import app
+from . import app
 from flask import abort, jsonify, request, make_response
-from app.utils import execute_query, get_key_value_pairs, remove_common_prefix, calculate_access_metric, calculate_high_level_metrics, calculate_demographic_level_metrics
-from app.utils import  population_density, at_risk_scores, get_json, add_rank
+from .utils import execute_query, get_key_value_pairs, remove_common_prefix, calculate_access_metric, calculate_high_level_metrics, calculate_demographic_level_metrics
+from .utils import  population_density, at_risk_scores, get_json, add_rank
 
 
 @app.route("/meta/accessibility-metric")

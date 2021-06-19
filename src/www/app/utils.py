@@ -1,6 +1,6 @@
 from functools import reduce
-from app import app, db
-from sqlalchemy import text, exc
+from . import db
+from sqlalchemy import exc
 from flask import jsonify
 import math
 
