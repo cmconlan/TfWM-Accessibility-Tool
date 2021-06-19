@@ -106,7 +106,9 @@ def process_trips(host: str, trips: Set[Trip]):
     results = []
     for trip in pb.progressbar(trips):
         response = request_otp(host, trip.to_dict())
-        results.append(parse_response(response))
+        trip_results = parse_response(response)
+        if trip_results:
+            results.append(trip_results)
     return results
 
 if __name__ == "__main__":
