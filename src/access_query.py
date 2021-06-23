@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "./www/")
+
 import argparse
 import math
 import random
