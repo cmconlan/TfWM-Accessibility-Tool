@@ -127,6 +127,21 @@ def otp_running(url: str) -> bool:
     return otp_response.ok
 
 
+def contains_all_necessary_columns(df: pd.DataFrame) -> bool:
+    return {
+        'departure_time', 'arrival_time', 'total_time', 'walk_time',
+        'transfer_wait_time', 'transit_time', 'walk_dist', 'transit_dist',
+        'total_dist', 'num_transfers', 'initial_wait_time', 'fare'
+    }.issubset(df.columns)
+
+
+def access_score(trip_results: pd.DataFrame):
+    assert contains_all_necessary_columns(trip_results)
+
+    # TODO: Implement the actual access score calculation
+    return trip_results
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Run OTP to compute an access query')
@@ -139,9 +154,9 @@ if __name__ == "__main__":
         'query-params',
         type=str,
         help='Path to the YAML file describe the access query parameters')
-    args = parser.parse_args()
+    args = vars(parser.parse_args())
 
-    otp_url = args.otp_url
+    otp_url = args['otp-url']
     if not otp_running(otp_url):
         print(
             f"OTP is not running at host {otp_url}, or has not finished starting up."
@@ -150,7 +165,7 @@ if __name__ == "__main__":
     else:
         print(f"OTP Instance running OK at {otp_url}")
 
-    with open(args.query_params) as yml:
+    with open(args['query-params']) as yml:
         query_parameters = yaml.safe_load(yml)
 
     oa_ids = query_parameters['output-areas']
@@ -164,8 +179,11 @@ if __name__ == "__main__":
     # so make sure the trips we sample are between those dates
     print("Generating Trips...")
     trips = generate_trips(oa_ids, poi_types, start_interval, end_interval)
+
     print(f"{len(trips)} trips created.")
     print(f"Sending trips to OTP...")
+    
     results = process_trips(otp_url, trips)
     results_df = pd.DataFrame(results)
-    print(results_df)
+    
+    print(access_score(results_df))
