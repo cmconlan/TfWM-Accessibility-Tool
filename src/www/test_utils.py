@@ -1,5 +1,5 @@
 import pytest
-import app.utils as utils
+import www.app.utils as utils
 
 
 def test_get_key_value_pairs():
