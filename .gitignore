@@ -7,3 +7,4 @@ venv
 src/.env
 src/www/.env
 tfwm.db
+.pytest*
