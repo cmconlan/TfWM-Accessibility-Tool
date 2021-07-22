@@ -13,6 +13,13 @@ populations:
     - age_75_to_84
     - age_85_to_89
     - age_90_plus
+  elderly_85_plus:
+    - age_85_to_89
+    - age_90_plus
+  elderly_75_plus:
+    - age_75_to_84
+    - age_85_to_89
+    - age_90_plus
   disabled:
     - disability_severe
     - disability_moderate
@@ -70,6 +77,9 @@ points_of_interest:
   School: 3
   Childcare: 3
   Rail Station: 2
+  GP Surgery: 3
+  Vaccine Distribution Hub: 2
+  Vaccination Centre : 2
 
 # Dict of time definitions, used for stratified sampling of timestamps
 time_defs:
@@ -92,8 +102,8 @@ time_defs:
     sunday:
       - Sunday
   term:
-    start_date: 2020-7-01
-    end_date: 2020-7-28
+    start_date: 2021-01-01
+    end_date: 2021-01-28
 
 # List of time strata (segments)
 # For each stratum, sample n_sample timepoints if specified, otherwise hyper_params['n_timepoints']
