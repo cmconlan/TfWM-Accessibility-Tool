@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 
 
 def request_otp(host_url, input_row):
+    # Strip a trailing backslash if there is one
+    if host_url[-1] == "/":
+        host_url = host_url[:-1]
     url = host_url + '/otp/routers/default/plan?'
     params = {
         "fromPlace": f"{input_row['oa_lat']},{input_row['oa_lon']}",
