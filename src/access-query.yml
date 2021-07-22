@@ -1,8 +1,0 @@
-output-areas:
- - E00045077
- - E00045078
-poi-types:
- - School
-time-interval:
-  start: "2021-05-25 07:00"
-  end: "2021-05-25 09:00"

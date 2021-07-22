@@ -4,7 +4,7 @@ data/*
 results/*
 venv
 *.pyc
-src/.env
+.env
 src/www/.env
 tfwm.db
 .pytest*
