@@ -6,5 +6,6 @@ with open(activate_this) as file_:
     exec(file_.read(), dict(__file__=activate_this))
 
 site.addsitedir('/dcs/project/transport-access-tool/TfWM-Accessibility-Tool/venv/lib/python3.6/site-packages')
+site.addsitedir('/dcs/project/transport-access-tool/TfWM-Accessibility-Tool')
 
 from app import app as application
