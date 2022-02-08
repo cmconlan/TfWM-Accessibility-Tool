@@ -27,7 +27,7 @@ nr.metaclass==0.0.4
 nr.parsing.date==0.0.1
 nr.pylang.utils==0.0.1
 nr.stream==0.0.2
-numpy==1.18.2
+numpy==1.21.0
 packaging==20.3
 pandas==1.0.3
 pathtools==0.1.2
