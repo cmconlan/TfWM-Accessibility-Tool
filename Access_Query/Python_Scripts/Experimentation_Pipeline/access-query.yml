@@ -12,8 +12,7 @@ output-areas:
 poi-types:
  - School
 time-interval:
-  start: "2021-04-20 07:30"
-  end: "2021-04-20 09:30"
+  start: "2021-05-25 07:30"
+  end: "2021-05-25 09:30"
 gen-trips:
   num_trips: 20
-  gen_trips: "N"

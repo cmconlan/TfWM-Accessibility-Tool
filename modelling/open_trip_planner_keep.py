@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 
 
 def request_otp(host_url, input_row):
+    # Strip a trailing backslash if there is one
+    if host_url[-1] == "/":
+        host_url = host_url[:-1]
     url = host_url + '/otp/routers/default/plan?'
     params = {
         "fromPlace": f"{input_row['oa_lat']},{input_row['oa_lon']}",
@@ -12,9 +15,7 @@ def request_otp(host_url, input_row):
         "time": f"{input_row['time']}",
         "mode": "TRANSIT,WALK",
         "arriveBy": "false",
-        "numItineraries": "1",
-        #"maxWalkDistance": "1000"
-        "walkReluctance": "20"
+        "numItineraries": "1"
     }
     resp = requests.get(
         url=url,
@@ -102,6 +103,8 @@ def parse_response(response):
             trip['initial_wait_time'] = 0.0
             trip['fare'] = 0.0
             trip_valid = True
+        else:
+            print(root.find('error').find('msg').text)
     else:
         plan = root.find('plan')
         # Go through the iteneraries found in the plan. Should only be 1
@@ -138,7 +141,7 @@ if __name__ == '__main__':
         'oa_lon': -1.81185753550122,
         'poi_lat': 52.43833923,
         'poi_lon': -1.808046699,
-        'date': '2020-7-28',
+        'date': '2020-07-28',
         'time': '07:07'
     }
     faulty_trip = {
@@ -149,6 +152,6 @@ if __name__ == '__main__':
         'date': '2020-07-28',
         'time': '13:49'
     }
-    response = request_otp(host, faulty_trip)
+    response = request_otp(host, test_trip)
     print(response.content)
-    print(parse_response(response, ))
+    print(parse_response(response))
