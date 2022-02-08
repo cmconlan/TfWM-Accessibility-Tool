@@ -19,8 +19,6 @@ MarkupSafe==1.1.1
 mccabe==0.6.1
 mkdocs==1.1
 more-itertools==8.2.0
-mysql-connector==2.2.9
-mysqlclient==1.4.6
 nltk==3.4.5
 nr.collections==0.0.1
 nr.databind==0.0.4
@@ -35,7 +33,6 @@ pandas==1.0.3
 pathtools==0.1.2
 pluggy==0.13.1
 progressbar2==3.51.4
-psycopg2==2.8.4
 py==1.8.1
 pycodestyle==2.6.0
 pyflakes==2.2.0
