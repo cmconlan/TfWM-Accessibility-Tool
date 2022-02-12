@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 
 
 def request_otp(host_url, input_row):
+    # Strip a trailing backslash if there is one
+    if host_url[-1] == "/":
+        host_url = host_url[:-1]
     url = host_url + '/otp/routers/default/plan?'
     params = {
         "fromPlace": f"{input_row['oa_lat']},{input_row['oa_lon']}",
@@ -16,11 +19,9 @@ def request_otp(host_url, input_row):
         #"maxWalkDistance": "1000"
         "walkReluctance": "20"
     }
-    resp = requests.get(
-        url=url,
-        params=params,
-        headers={'accept': 'application/xml'}
-    )
+    resp = requests.get(url=url,
+                        params=params,
+                        headers={'accept': 'application/xml'})
     return resp
 
 
@@ -48,7 +49,9 @@ def get_fare_from_itinerary(itinerary):
     if itinerary.find('fare') is not None:
         fare_obj = itinerary.find('fare')
         if fare_obj.find('details') is not None:
-            return float(fare_obj.find('details').find('regular').find('price').find('cents').text) / 100
+            return float(
+                fare_obj.find('details').find('regular').find('price').find(
+                    'cents').text) / 100
 
 
 def calculate_fare(num_transfers, walk_time, total_time):
@@ -106,30 +109,45 @@ def parse_response(response):
         plan = root.find('plan')
         # Go through the iteneraries found in the plan. Should only be 1
         for itineraries in plan.findall('itineraries'):
-            if itineraries.find('itineraries') is not None:  # Note that this line discards error XML, where there was no route
+            if itineraries.find(
+                    'itineraries'
+            ) is not None:  # Note that this line discards error XML, where there was no route
                 for itinerary in itineraries.findall('itineraries'):
                     format_str = '%Y-%m-%d %H:%M:%S'
-                    trip['arrival_time'] = get_time_from_itinerary('endTime', itinerary).strftime(format_str)
+                    trip['arrival_time'] = get_time_from_itinerary(
+                        'endTime', itinerary).strftime(format_str)
                     trip['total_time'] = float(itinerary.find('duration').text)
                     trip['walk_time'] = float(itinerary.find('walkTime').text)
-                    trip['transfer_wait_time'] = float(itinerary.find('waitingTime').text)
-                    trip['transit_time'] = float(itinerary.find('transitTime').text)
-                    trip['walk_dist'] = float(itinerary.find('walkDistance').text)
-                    trip['num_transfers'] = int(itinerary.find('transfers').text)
-                    trip['total_dist'] = get_total_distance_from_itinerary(itinerary)
+                    trip['transfer_wait_time'] = float(
+                        itinerary.find('waitingTime').text)
+                    trip['transit_time'] = float(
+                        itinerary.find('transitTime').text)
+                    trip['walk_dist'] = float(
+                        itinerary.find('walkDistance').text)
+                    trip['num_transfers'] = int(
+                        itinerary.find('transfers').text)
+                    trip['total_dist'] = get_total_distance_from_itinerary(
+                        itinerary)
                     trip['fare'] = get_fare_from_itinerary(itinerary)
                     if trip['fare'] is None:
-                        trip['fare'] = calculate_fare(trip['num_transfers'], trip['walk_time'], trip['total_time'])
+                        trip['fare'] = calculate_fare(trip['num_transfers'],
+                                                      trip['walk_time'],
+                                                      trip['total_time'])
                     # capture the wait time before the first bus arrives
-                    departure_time = get_time_from_itinerary('startTime', itinerary)
-                    trip['initial_wait_time'] = (departure_time - query_time).total_seconds()
-                    trip['departure_time'] = departure_time.strftime(format_str)
-                    trip['transit_dist'] = trip['total_dist'] - trip['walk_dist']
+                    departure_time = get_time_from_itinerary(
+                        'startTime', itinerary)
+                    trip['initial_wait_time'] = (departure_time -
+                                                 query_time).total_seconds()
+                    trip['departure_time'] = departure_time.strftime(
+                        format_str)
+                    trip['transit_dist'] = trip['total_dist'] - trip[
+                        'walk_dist']
                     trip_valid = validate_trip(trip)
     if trip_valid:
         return trip
     else:
         return False
+
 
 if __name__ == '__main__':
     host = "http://localhost:8080"
@@ -138,7 +156,7 @@ if __name__ == '__main__':
         'oa_lon': -1.81185753550122,
         'poi_lat': 52.43833923,
         'poi_lon': -1.808046699,
-        'date': '2020-7-28',
+        'date': '2020-07-28',
         'time': '07:07'
     }
     faulty_trip = {
@@ -149,6 +167,6 @@ if __name__ == '__main__':
         'date': '2020-07-28',
         'time': '13:49'
     }
-    response = request_otp(host, faulty_trip)
+    response = request_otp(host, test_trip)
     print(response.content)
     print(parse_response(response, ))
