@@ -4,7 +4,6 @@ chardet==3.0.4
 click==7.1.1
 convertdate==2.2.0
 DateTime==4.3
-flake8==3.8.3
 Flask==1.1.1
 Flask-SQLAlchemy==2.4.1
 future==0.18.2
