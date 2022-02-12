@@ -18,7 +18,7 @@ MarkupSafe==1.1.1
 mccabe==0.6.1
 mkdocs==1.1
 more-itertools==8.2.0
-nltk==3.4.5
+nltk==3.6.6
 nr.collections==0.0.1
 nr.databind==0.0.4
 nr.interface==0.0.1
